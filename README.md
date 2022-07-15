@@ -14,3 +14,9 @@ The repository is centered around the `R` module:
 * `calculate_signal_importance` contains the scripts to calculate the upstream signal pairs or signals importance in the multilay signal network of cell communication <br>
 * `visualize_cell_communication` contains the scripts to visualize cell-cell interations <br>
 
+Additional files and folders for reproducibility are found in another repository: `stMLnet-AnalysisCode`
+
+
+
+
+
