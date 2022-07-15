@@ -7,4 +7,6 @@
 * leverages spatial information in the ST data to quantify intercellular signaling activity and connect extracellular signals to intracellular gene expression<br>
 * provides various visualizations to vividly depict mechanisms underlying cellular communications and molecular regulations<br>
 
+## Package Structure
+The repository is mainly composed of the following modules：
 
