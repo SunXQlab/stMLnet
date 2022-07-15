@@ -8,10 +8,9 @@
 * provides various visualizations to vividly depict mechanisms underlying cellular communications and molecular regulations <br>
 
 ## Package Structure
-The repository is centered around the `runMLnet` module:
-* `runMLnet` contains the scripts to create mulitlayer signling network <br>
-* `runImputation` contains the scripts to imputate the ST normalized expression matrix <br>
-*  `getSiganlActivity` contains the scripts to obtain the upstream paired signaling activity and downstream target gene expression based on the mulitlayer signling network <br>
-*  
-
+The repository is centered around the `R` module:
+* `creat_multilayer_network` contains the scripts to create mulitlayer signling network <br>
+* `calculate_signal_activity` contains the scripts to obtain the upstream paired signaling activity and downstream target gene expression based on the mulitlayer signling network <br>
+* `calculate_signal_importance` contains the scripts to calculate the upstream signal pairs or signals importance in the multilay signal network of cell communication <br>
+* `visualize_cell_communication` contains the scripts to visualize cell-cell interations <br>
 
