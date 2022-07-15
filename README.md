@@ -15,12 +15,12 @@ The repository is centered around the `R` module:
 * `visualize_cell_communication` contains the scripts to visualize cell-cell interations <br>
 
 Additional files and folders for reproducibility are found in another repository: stMLnet-AnalysisCode
-* `apply_in_COVID19` 
-* `apply_in_scGNM`
-* `apply_in_simu`
-* `apply_in_stBC`
-* `code`
-* `prior_knowledge/output`
+* `apply_in_COVID19` contains the code to reproduce plots and detailed analysis of the COVID-19 ST dataset <br>
+* `apply_in_scGNM` contains the code to reproduce plots and detailed analysis for appling stMLnet on the scRNA-seq dataset <br>
+* `apply_in_simu` contains the code to reproduce the simulation study of stMLnet <br>
+* `apply_in_stBC` contains the code to reproduce plots and benchmarking of the breast cancer dataset <br>
+* `code` contains all functions included `stMLnet` to analysis cell-cell interactions <br>
+* `prior_knowledge/output` contains the prior knowledge databases <br>
 
 
 
