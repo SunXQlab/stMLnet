@@ -19,7 +19,7 @@ Additional files and folders for reproducibility are found in another repository
 * `apply_in_scGNM` contains the code to reproduce plots and detailed analysis for appling stMLnet on the scRNA-seq dataset <br>
 * `apply_in_simu` contains the code to reproduce the simulation study of stMLnet <br>
 * `apply_in_stBC` contains the code to reproduce plots and benchmarking of the breast cancer dataset <br>
-* `code` contains all functions included `stMLnet` to analysis cell-cell interactions <br>
+* `code` contains all functions of stMLnet to analysis cell-cell interactions <br>
 * `prior_knowledge/output` contains the prior knowledge databases <br>
 
 
