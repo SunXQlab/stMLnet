@@ -1,0 +1,451 @@
+---
+title: "Tutorial of stMLnet"
+author: "cjy"
+date: "2022/5/11"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Library
+
+安装依赖R包：Seurat, SeuratWrappers, reshape2, stringr, dplyr
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+# if(!requireNamespace('remotes')){install.packages('remotes', repos = 'https://cloud.r-project.org')}
+# remotes::install_version("Seurat", version = "4.0.2")
+# remotes::install_github('satijalab/seurat-wrappers')
+# pkgs <- c('reshape2','stringr','dplyr')
+# for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
+
+pkgs <- c('Seurat','SeuratWrappers','reshape2','stringr','dplyr')
+for (pkg in pkgs) {
+  if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
+}
+
+```
+
+安装模型依赖R包：caret, doParallel, snow, foreach, ranger
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+# pkgs <- c('caret','doParallel','snow','foreach','ranger')
+# for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
+
+pkgs <- c('caret','doParallel','doSNOW','foreach','ranger')
+for (pkg in pkgs) {
+  if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
+}
+
+```
+
+安装画图R包：plotrix, clusterProfiler, ggplot2, ggalluvial, ggraph, ggsci, igraph, org.Hs.eg.db
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+# pkgs <- c('ggplot2','ggsci',
+#           'clusterProfiler','org.Hs.eg.db',
+#           'plotrix','ggalluvial','ggraph','igraph')
+# for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
+
+pkgs <- c('ggplot2','ggsci','clusterProfiler','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
+for (pkg in pkgs) {
+  if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
+}
+
+```
+
+安装stMLnet包
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+# install.packages("F:/finalVersion/Rpackage/stMLnet_0.1.0.tar.gz", repos = NULL, type = "source")
+
+if (!requireNamespace('stMLnet')) { cat('please install and library the package: stMLnet','\n') }
+
+```
+
+加载R包
+
+```{r include=FALSE}
+
+pkgs <- c('Seurat','SeuratWrappers','reshape2','stringr','dplyr',
+          'caret','doParallel','doSNOW','foreach','ranger', 'stMLnet',
+          'ggplot2','ggsci','clusterProfiler','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
+for (pkg in pkgs) { library(pkg, character.only = T) }
+
+```
+
+### Load DATA
+
+载入示例数据库ex_databases，包括三个子列表：LigRec.DB、RecTF.DB和TFTG.DB。子列表有source，target，score三列构成，其中source列在以上三个子列表里分别表示配体、受体、转录因子等信号分子，而target列则分别表示受体、转录因子、靶基因等信号分子。LigRec.DB和TFTG.DB的score列表示相互作用在收集的数据库中出现的次数，而RecTF.DB的score列表示相互作用在收集的数据库中出现的预测概率。，具体分析参考[论文](xxxx)和[代码](xxxxx)。
+
+```{r echo=TRUE}
+
+inputDir <- "F:/finalVersion/Rpackage/stMLnet.1.0.0/sup/data/"
+load(paste0(inputDir,'ex_databases.rda'))
+str(ex_databases,max.level=2)
+
+```
+
+载入示例数据ex_inputs，包括:
+
+- exprMat: 标准化的表达矩阵
+- annoMat: 细胞类型注释矩阵
+- locaMat: 空间位置信息矩阵
+- ligs_of_inter: 不同类型细胞的潜在配体列表，来源于Seurat的FindMarker结果。
+- recs_of_inter: 不同类型细胞的潜在受体列表，来源于对表达量的过滤。
+- tgs_of_inter: 不同类型细胞的潜在靶基因列表，来源于Giotto的findICG结果。
+
+其中，ligs_of_inter、recs_of_inter和tgs_of_inter可根据上述三个输入矩阵进行自动计算。（findICG还未实现）
+
+```{r echo=TRUE}
+
+load(paste0(inputDir,'ex_inputs.rda'))
+str(ex_inputs,max.level=2)
+
+```
+
+示例数据来自于10X Visiumd的[乳腺癌数据集](https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Breast_Cancer_Block_A_Section_1)，我们使用seurat (Version4.0.2) 分析空间转录组数据，并使用RCTD方法进行解卷积处理，具体分析参考[论文](xxxx)和[代码](xxxxx)。处理好的数据集可以在[zenodo](xxxxx)或者[github](xxxxx)下载。
+
+### create mulityayer network
+
+分析乳腺癌微环境中不同类型细胞配对间的多层信号网络
+
+```{r results='hide'}
+
+resMLnet <- runMLnet(ExprMat = ex_inputs$exprMat, AnnoMat = ex_inputs$annoMat,
+                     LigClus = NULL, RecClus = NULL, Normalize = F, NormMethod = "LogNormalize",
+                     logfc.ct = 0.1, pct.ct = 0.05, pval.ct = 0.05, expr.ct = 0.1,
+                     ProjectName = '0511-1', Databases = NULL,
+                     TGList=ex_inputs$tgs_of_inter, LigList=ex_inputs$ligs_of_inter, RecList=ex_inputs$recs_of_inter)
+
+```
+
+结果主要包括受体细胞与其他类型细胞的多层信号网络以及具体统计信息，以肿瘤细胞为例：`resMLnet$mlnets$Malignant`包括所有其他类型细胞（作为配体细胞）与肿瘤细胞的多层信号网络，`resMLnet$details$Malignant`包含上述多个多层信号网络的统计信息。
+
+```{r echo=TRUE}
+
+str(resMLnet$mlnets$Malignant, max.level = 2)
+resMLnet$details$Malignant[,1:3]
+
+```
+
+### calculate Signal Activity
+
+根据空间位置信息计算细胞配对的空间距离并对表达矩阵进行填补处理，用于后续计算配对信号的活性。
+
+```{r results='hide'}
+
+DistMat <- as.matrix(dist(ex_inputs$locaMat))
+colnames(DistMat) <- colnames(ex_inputs$exprMat)
+rownames(DistMat) <- colnames(ex_inputs$exprMat)
+
+```
+
+```{r  echo=TRUE}
+DistMat[1:4,1:4]
+```
+
+```{r  results='hide'}
+exprMat.Impute <- runImputation (exprMat = ex_inputs$exprMat)
+```
+
+```{r  echo=TRUE}
+exprMat.Impute[1:4,1:4]
+```
+
+载入上一步生成的多层信号网络，用于后续计算配对信号的活性。
+
+```{r echo=TRUE}
+
+inputDir <- paste0(getwd(),'/runscMLnet/work_0511-1/')
+files <- list.files(inputDir)
+files <- files[grep('TME',files,invert = T)]
+
+ex_mulnetlist <- list()
+for (f in files) {
+  
+  mlnet <- readRDS(paste0(getwd(),'/runscMLnet/work_0511-1/',f,"/scMLnet.rds"))
+  if(nrow(mlnet$LigRec)!=0) ex_mulnetlist[[f]] = mlnet
+  
+}
+
+```
+
+也可以直接从上一步结果获取，需要进行过滤。
+
+```{r echo=TRUE}
+
+ex_mulnetlist <- list()
+for (i in 1:length(resMLnet$mlnets)) {
+
+  mlnets <- resMLnet$mlnets[[i]]
+  for (j in 1:length(mlnets)) {
+      mlnet <- mlnets[[j]]
+      if(nrow(mlnet$LigRec)!=0) ex_mulnetlist[[names(mlnets)[j]]] = mlnet
+  }
+
+}
+
+str(ex_mulnetlist[1:3], max.level = 2) 
+
+```
+
+基于细胞配对的多层信号网络获取上游配对信号活性和下游靶基因表达量。
+
+```{r results='hide'}
+
+clusters <- ex_inputs$annoMat$Cluster %>% unique() %>% as.character()
+resSigActList <- list()
+for (cluster in clusters) {
+
+  Sender <- clusters[clusters!=cluster]
+  resSigActList[[cluster]] <- getSiganlActivity(ExprMat = exprMat.Impute,
+                                                DistMat = DistMat,
+                                                AnnoMat = ex_inputs$annoMat,
+                                                MulNetList = ex_mulnetlist,
+                                                Receiver = cluster, Sender = Sender,
+                                                Group = NULL, far.ct = 0.75, close.ct = 0.25,
+                                                Downsample = FALSE, ProjectName = '0511-1')
+
+}
+
+```
+
+结果主要包括基于不同类型细胞配对的多层信号网络计算的上游配对信号（配体-受体）活性以及受体细胞的下游靶基因表达量。以肿瘤细胞为例：`resSigActList$Malignant$Endothelial_Malignant`储存了以内皮细胞为配体细胞，肿瘤细胞为受体细胞的上游配对信号活性以及下游靶基因表达量，其中`LRs_score`是上游配对信号活性矩阵，以受体细胞为行，以上游配对信号为列，记录了下游靶基因对应的上游配对信号在不同受体细胞上的具体活性，`TGs_expr`是下游靶基因表达量向量，记录了靶基因在不同受体细胞上的具体表达量。上游配对信号和下游靶基因的对应关系来自上一步计算的多层信号网络。
+
+```{r echo=TRUE}
+
+resSigActList$Malignant$Endothelial_Malignant$LRs_score$ABHD2[1:4,1:4]
+resSigActList$Malignant$Endothelial_Malignant$TGs_expr$ABHD2[1:4]
+
+```
+
+### calculate signal importance
+
+载入调控定量分析模型的输入和输出。
+
+```{r echo=TRUE}
+
+inputDir <- paste0(getwd(),'/runModel/work_0511-1/')
+files <- list.files(inputDir)
+files[1:4]
+
+```
+
+定量分析不同类型细胞配对的多层信号网络的上下游调控关系，需要设置输出文件名`projectName`，运行核数`NCores`等参数。注意，随机模型默认使用交叉验证和随机搜索实现自动调参（约耗费2小时），设置`AutoPara = FALSE`和其他相应参数（`NTrys`, `TreeMethod`, `NodeSize`等）可关闭自动调参，节约时间。
+
+```{r eval=FALSE}
+
+time_ls <- c()
+for(f in files){
+  
+  label <- paste(unlist(strsplit(f,'[_.]'))[3:4],collapse = '-')
+  LRTG_allscore <- readRDS(paste0(getwd(),'/runModel/work_work-in-0511-1/',f))
+  message(paste0('running jobs: ',label))
+    
+  t1 <- Sys.time()
+  getSiganlImport(SiganlActivity = LRTG_allscore, Lable = label, ProjectName = '0511-1',
+                  NCores = 6, AutoPara = TRUE, NTrees = 500, NTrys = 10,
+                  TreeMethod = 'variance', NodeSize = 5,  NPert = 10)
+  t2 <- Sys.time()
+  time_ls <- c(time_ls,paste(signif(t2-t1,4),units(signif(t2-t1,4)),sep = ' '))
+  
+}
+
+```
+
+结果主要包括基于不同类型细胞配对的多层信号网络计算的上下游信号的定量调控关系。命名规则`为LRTG_im/pim_clean_celltypeA-celltypeB`，im代表上游配对信号（配体-受体）与下游靶基因的调控关系，pim代表上游信号（配体或受体）与下游靶基因的调控关系。celltypeA代表配体细胞，celltypeB代表受体细胞。
+
+```{r echo=TRUE}
+
+outputDir <- paste0(getwd(),'/getPIM/work_0511-1/')
+files <- list.files(outputDir)
+head(files,2)
+tail(files,2)
+
+```
+
+以T细胞和肿瘤细胞相互作用为例：`LRTG_im_clean_Tcell-Malignant`储存了以T细胞为配体细胞，肿瘤细胞为受体细胞的上游配对信号`LRpair`与下游靶基因`Target`的调控关系，其中`IM`是定量分析模型输出的特征重要性打分，`im_norm`是标准化后的重要性打分。
+
+```{r echo=TRUE}
+
+f <- files[grepl('Tcell-Malignant',files) & grepl('_im_',files)]
+LRTG_im <- readRDS(paste0(getwd(),'/getPIM/work_0511-1/',f))
+rownames(LRTG_im) <- NULL
+head(LRTG_im)
+
+```
+
+`LRTG_pim_clean_Tcell-Malignant`储存了以T细胞为配体细胞，肿瘤细胞为受体细胞的上游信号`Regulator`与下游靶基因`Target`的调控关系，其中`pIM`是定量分析模型输出的经过调整的特征重要性打分，`type`表示上游信号的实际信号类型。
+
+```{r echo=TRUE}
+
+f <- files[grepl('Tcell-Malignant',files) & grepl('_pim_',files)]
+LRTG_pim <- readRDS(paste0(getwd(),'/getPIM/work_0511-1/',f))
+rownames(LRTG_pim) <- NULL
+head(LRTG_pim)
+
+```
+
+### visualize cell comunication
+
+准备画图颜色对象myColor，其中Celltypes对应不同类型细胞的颜色，Keys对应不同类型信号的颜色，Nodes对应其他必备颜色（不影响画图）。
+
+```{r echo=TRUE}
+
+celltype <- c("Malignant","Macrophage","Stroma","Bcell","Endothelial","Epithelial","Tcell")
+myColor <- PrepareColorDB(CellTypes = celltype)
+scales::show_col(myColor$Celltypes)
+scales::show_col(myColor$Keys)
+
+```
+
+准备画图输入数据，其中`MLnetDir`是不同细胞配对的多层信号网络结果的存储路径，`ActivityDir`储存了不同细胞配对的多层信号网络的上游配对信号活性，`ImportDir`储存了不同细胞配对的多层信号网络的上下游调控关系定量分析结果。
+
+```{r echo=TRUE}
+
+MLnetDir <- paste0(getwd(),'/runscMLnet/work_0511-1/')
+ActivityDir <- paste0(getwd(),'/runModel/work_0511-1/')
+ImportDir <- paste0(getwd(),'/getPIM/work_0511-1/')
+
+```
+
+图像存储于当前工作目录下自动创建的`visualize_CCI`文件夹，用户可以设置`gtitle`来标识当前任务对应的不同可视化输出。
+
+#### 细胞通讯网络图
+
+细胞通讯网络图（cell-communication network）展示微环境中不同类型细胞配对间细胞相互作用强度。其中节点颜色代表不同类型细胞，边代表细胞之间存在相互作用，边的颜色与配体细胞保持一致，边的粗细可以代表不同含义（上游配体-受体配对信号数量，下游靶基因数量，（标准化）特征重要性的均值或求和等）。
+
+```{r eval=FALSE}
+
+Metrics <- c('n_LRs','n_TGs','IM','IM_norm','mean_IM','mean_IM_norm')
+ColorDB <- myColor$Celltypes
+lapply(Metrics, function(Metric){
+  DrawNetworkPlot(InputDir = ImportDir, Metric = Metric, ColorDB = ColorDB, gtitle = Metric)
+})
+
+```
+
+```{r echo=TRUE}
+
+Metric <- 'IM'
+ColorDB <- myColor$Celltypes
+DrawNetworkPlot(InputDir = ImportDir, Metric = Metric, ColorDB = ColorDB, gtitle = Metric)
+
+```
+
+#### 多层信号网络图
+
+多层信号网络图（Multilayer signaling network）展示了特定类型细胞受到指定配体/受体调控的多层信号网络，根据重要性打分筛选展示的下游靶基因，颜色代表了多层信号网络中不同信号类型(配体，受体，转录因子，靶基因)，边代表信号分子相互作用。以T细胞和肿瘤细胞相互作用为例，分别展示了T细胞分泌的SEMA4D和TGFB1与肿瘤细胞内部靶基因的调控信号网络。
+
+```{r echo=TRUE, fig.height=4.5, fig.width=7}
+
+DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Tcell_Malignant/scMLnet.rds'), 
+              ImportDir = paste0(ImportDir,'LRTG_im_clean_Tcell-Malignant.rds'), 
+              Signal = 'SEMA4D', Check = TRUE, top.n = 10, ColorDB = myColor$Keys,
+              gtitle = 'SEMA4D',  p_height = 4.5, p_width = 7)
+
+```
+
+```{r echo=TRUE, fig.height=4.5, fig.width=7}
+
+DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Tcell_Malignant/scMLnet.rds'), 
+              ImportDir = paste0(ImportDir,'LRTG_im_clean_Tcell-Malignant.rds'), 
+              Signal = 'TGFB1', Check = TRUE, top.n = 10, ColorDB = myColor$Keys,
+              gtitle = 'TGFB1',  p_height = 4.5, p_width = 7)
+
+```
+
+
+#### 配对信号活性图
+
+配对信号活性图（ligand-receptor pairs activity diagram ）展示了微环境中受体细胞与其他类型细胞间的配对信号的活性大小。边的颜色代表作为配体细胞的其他细胞类型，方向代表配对信号的信息传递方向，粗细代表配对信号的活性大小。（配体）节点的大小代表该节点参与的所有配对信号活性的总和。
+
+```{r eval=FALSE}
+
+colordb <- unlist(myColor)
+names(colordb) <- gsub('.*\\.','',names(colordb))
+for (Cluster in celltype) {
+
+  gtitle <- paste0('sender_',Cluster)
+  DrawEdgeBundlingPlot(InputDir = ActivityDir, Cluster = Cluster, ColorDB = colordb,
+                       Check = TRUE, top.n = 50, gtitle = gtitle, p_height = 7.5, p_width = 7)
+
+}
+
+```
+
+```{r echo=TRUE, fig.height=7.5, fig.width=7}
+
+colordb <- unlist(myColor)
+names(colordb) <- gsub('.*\\.','',names(colordb))
+Cluster <- 'Malignant'
+gtitle <- paste0('sender_',Cluster)
+DrawEdgeBundlingPlot(InputDir = ActivityDir, Cluster = Cluster, ColorDB = colordb,
+                     Check = TRUE, top.n = 50, gtitle = gtitle, p_height = 7.5, p_width = 7)
+
+```
+
+#### 调控关系分析图
+
+调控关系分析图（Diagram of upstream and downstream regulation relationship）展示了微环境中受体细胞与其他类型细胞间排名靠前的上游配体-受体配对信号与下游靶基因的调控信号通路，其中边的颜色代表作为配体细胞的其他细胞类型，粗细代表上游配体-受体配对信号与下游靶基因的调控能力大小。
+
+```{r eval=FALSE}
+
+colordb <- unlist(myColor)
+names(colordb) <- gsub('.*\\.','',names(colordb))
+for (Cluster in celltype) {
+
+  gtitle <- paste0('sender_',Cluster)
+  DrawAlluviumPlot(InputDir = ImportDir, Cluster = Cluster, ColorDB = colordb,
+                   Check = TRUE, top.n = 30, gtitle = gtitle, p_height = 7.5, p_width = 7)
+
+}
+
+```
+
+```{r echo=TRUE, fig.height=7.5, fig.width=7}
+
+colordb <- unlist(myColor)
+names(colordb) <- gsub('.*\\.','',names(colordb))
+Cluster <- 'Malignant'
+gtitle <- paste0('sender_',Cluster)
+DrawAlluviumPlot(InputDir = ImportDir, Cluster = Cluster, ColorDB = colordb,
+                 Check = TRUE, top.n = 30, gtitle = gtitle, p_height = 7.5, p_width = 7)
+
+```
+
+#### 功能富集热图
+
+功能富集热图（function enrichment heatmap）展示了特定类型细胞的不同上游受体调控的靶基因的功能富集结果，其中虚线以上为GO数据库（生物学过程）的富集结果，以下为KEGG数据库的富集结果。横轴代表不同上游受体，纵轴代表了不同功能的基因集合，节点颜色越深说明富集越显著，节点越大代表富集到具体集合的基因比例越多。
+
+```{r eval=FALSE}
+
+for (Cluster in celltype) {
+
+  print(Cluster)
+  gtitle <- paste0('sender_',Cluster)
+  tryCatch({
+    DrawEnrichmentPlot(InputDir = MLnetDir, Cluster = Cluster, top.n = 3, gtitle = gtitle, p_height = 11.5, p_width = 10.5)
+  }, error = function(e){
+    message(paste0('Error in ',gtitle))
+  })
+
+}
+
+```
+
+```{r echo=TRUE, fig.height=8, fig.width=15}
+
+Cluster <- 'Malignant'
+gtitle <- paste0('sender_',Cluster)
+DrawEnrichmentPlot(InputDir = MLnetDir, Cluster = Cluster, top.n = 3, gtitle = gtitle, p_height = 11.5, p_width = 10.5)
+
+```
