@@ -17,7 +17,7 @@ The repository is centered around the `R` module:
 * `visualize_cell_communication` contains the scripts to visualize cell-cell interations <br>
 
 ## Usage
-To learn how to use this tool, chek `Tutorial of stMLnet.Rmd`. Note that parameters in the demo are not default and will not work for new datasets. Please make sure to adjust parameters for your new dataset.
+To learn how to use this tool, chek `Tutorial of stMLnet.Rmd`.
 
 ## Examples and Reproducibility
 All the examples and the reproducibility codes for the plots in the paper could be found in the `stMLnet-AnalysisCode` repository which includes:
