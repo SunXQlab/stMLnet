@@ -3,10 +3,11 @@
 ## what is stMLnet?
 ![image](https://github.com/SunXQlab/stMLnet/blob/main/overview_stMLnet.png)
 `stMLnet` is a tool to infer spatial intercellular communication and multilayer signaling regulations from `spatial transcriptomic data (ST)` by quantifying distance-weighted ligand–receptor (LR) signaling activity based on diffusion and mass action models and mapping it to intracellular targets. stMLnet can infer, quifity, and visualize both intercelluar communitations and the intracelluar gene regulatory work from ST data. stMLnet allows:
-* collects prior network databases based on multiple data sources （不确定合适不合适）<br>
 * constructs a multilayer signaling network, infer LR signling activate, and predicte LR-target gene regulation <br>
 * leverages spatial information in the ST data to quantify intercellular signaling activity and connect extracellular signals to intracellular gene expression<br>
 * provides various visualizations to vividly depict mechanisms underlying cellular communications and molecular regulations <br>
+
+We also provide the R code used for collection and integration of prior databases, detailed in `stMLnet-AnalysisCode` repository
 
 ## Package Structure
 The repository is centered around the `R` module:
@@ -15,19 +16,18 @@ The repository is centered around the `R` module:
 * `calculate_signal_importance` contains the scripts to calculate the upstream signal pairs or signals importance in the multilay signal network of cell communication <br>
 * `visualize_cell_communication` contains the scripts to visualize cell-cell interations <br>
 
-Additional files and folders for reproducibility are found in another repository: stMLnet-AnalysisCode
+## Usage
+To learn how to use this tool, chek `Tutorial of stMLnet.Rmd`. Note that parameters in the demo are not default and will not work for new datasets. Please make sure to adjust parameters for your new dataset.
+
+## Examples and Reproducibility
+All the examples and the reproducibility codes for the plots in the paper could be found in the `stMLnet-AnalysisCode` repository which includes:
+
 * `apply_in_COVID19` contains the code to reproduce plots and detailed analysis of the COVID-19 ST dataset <br>
 * `apply_in_scGNM` contains the code to reproduce plots and detailed analysis for appling stMLnet on the scRNA-seq dataset <br>
 * `apply_in_simu` contains the code to reproduce the simulation study of stMLnet <br>
 * `apply_in_stBC` contains the code to reproduce plots and benchmarking of the breast cancer dataset <br>
 * `code` contains all functions of stMLnet to analysis cell-cell interactions <br>
-* `prior_knowledge/output` contains the prior knowledge databases <br>
-
-## Usage
-To learn how to use this tool, chek `Tutorial of stMLnet.Rmd`. Note that hyperparameters in the demo are not default and will not work for new datasets（不确定参数这里是不是这样）.
-
-## Examples and Reproducibility
-All the examples and the reproducibility codes for the plots in the paper could be found in the stMLnet-AnalysisCode repository.
+* `prior_knowledge` contains the code used for collection and integration of prior databases <br>
 
 ## Support and contribute
 If you have a question or noticed a problem, you can post an `issue`.
