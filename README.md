@@ -23,7 +23,8 @@ Additional files and folders for reproducibility are found in another repository
 * `prior_knowledge/output` contains the prior knowledge databases <br>
 
 ## Usage
-To learn how to use this tool, 
+To learn how to use this tool, chek `Tutorial of stMLnet.Rmd`. Note that hyperparameters in the demo are not default and will not work for new datasets
+
 ## Examples and Reproducibility
 All the examples and the reproducibility codes for the plots in the paper could be found in the stMLnet-AnalysisCode repository.
 
