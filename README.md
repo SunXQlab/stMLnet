@@ -26,9 +26,10 @@ All the examples and the reproducibility codes for the plots in the paper could 
 * `apply_in_simu` contains the code to reproduce the simulation study of stMLnet <br>
 * `apply_in_stBC` contains the code to reproduce plots and benchmarking of the breast cancer dataset <br>
 * `apply_in_COVID19` contains the code to reproduce plots and detailed analysis of the COVID-19 ST dataset <br>
-* `apply_in_scGNM` contains the code to reproduce plots and detailed analysis for appling stMLnet on the scRNA-seq dataset <br>
+* `apply_in_scGNM` contains the code to reproduce plots and detailed analysis for appling stMLnet on the scRNA-seq dataset of glioma <br>
 * `code` contains all functions of stMLnet to analysis cell-cell interactions <br>
 
+See detials therein.
 
 
 ## Support and contribute
