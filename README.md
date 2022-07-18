@@ -32,7 +32,7 @@ All the examples and the reproducibility codes for the plots in the paper could 
 See detials therein.
 
 
-## Support and contribute
+## Contact
 If you have questions or suggestions for imrpoving stMLnet, please contact Xiaoqiang Sun via sunxq6@mail.sysu.edu.cn.
 
 
