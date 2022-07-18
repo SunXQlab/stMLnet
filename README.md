@@ -33,7 +33,7 @@ See detials therein.
 
 
 ## Support and contribute
-If you have a question or noticed a problem, you can post an `issue`.
+If you have questions or suggestions for imrpoving stMLnet, please contact Xiaoqiang Sun via sunxq6@mail.sysu.edu.cn.
 
 
 
