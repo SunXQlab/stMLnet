@@ -11,7 +11,7 @@ getSiganlActivity(
   MulNetList,
   Receiver,
   Sender = NULL,
-  ProjectName = NULL
+  OutputDir = NULL
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ getSiganlActivity(
 
 \item{Sender}{Vector, cell types that receiving signals.}
 
-\item{ProjectName}{Character, The project name of running jobs for now. Generate a working directory to save the final result.}
+\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
 }
 \value{
 List, The sublist contains the activity of upstream signal pairs and expression of downstream target genes in specific celltype pair.

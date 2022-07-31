@@ -7,7 +7,7 @@
 #' @param MulNetList List, The sublist is the multilayer signal network between of specific celltype pair.
 #' @param Receiver Character, cell type that sending signals.
 #' @param Sender Vector, cell types that receiving signals.
-#' @param ProjectName Character, The project name of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
 #'
 #' @return List, The sublist contains the activity of upstream signal pairs and expression of downstream target genes in specific celltype pair.
 #' @export
@@ -15,22 +15,11 @@
 #' @import dplyr
 #'
 getSiganlActivity <- function(ExprMat, DistMat, AnnoMat, MulNetList,
-                              Receiver, Sender = NULL, ProjectName = NULL){
-
-  ## library
-
-  # loadNamespace('dplyr')
-  # loadNamespace('Seurat')
-  # loadNamespace('SeuratWrappers')
+                              Receiver, Sender = NULL, OutputDir = NULL){
 
   ## work directory
 
-  if(is.null(ProjectName)){
-
-    ProjectName <- format(Sys.time(),format="%Y-%m-%d_%H-%M-%S")
-
-  }
-  WorkDir <- paste0("./runModel/work_",ProjectName)
+  WorkDir <- paste0(OutputDir,"/runModel/")
   dir.create(WorkDir, recursive = TRUE,showWarnings = F)
   cat(paste0("WorkDir: ",WorkDir,'\n'))
 
@@ -121,11 +110,7 @@ getSiganlActivity <- function(ExprMat, DistMat, AnnoMat, MulNetList,
 getCPSiganlActivity <- function(exprMat, distMat, annoMat,
                                 LRpairs, TGs, receiver, sender = NULL)
 {
-
-  ## library
-
-  # loadNamespace('dplyr')
-
+  
   ## obtain cell ID
   receBars = annoMat %>% dplyr::filter(Cluster == receiver) %>%
     dplyr::select(Barcode) %>% unlist() %>% as.character()
@@ -143,7 +128,6 @@ getCPSiganlActivity <- function(exprMat, distMat, annoMat,
 
   ## obtain ligands expression for each downstream target
   LigMats = lapply(TGs, function(tg){
-    # print(tg)
     ligands = Ligands[[tg]]
     if(length(ligands)==1){
       lig_count = exprMat[ligands, sendBars]
@@ -175,10 +159,8 @@ getCPSiganlActivity <- function(exprMat, distMat, annoMat,
   distMatReci = 1/distMat
 
   ## signal (LRpairs) activity
-  # t1 <- Sys.time(); message(paste0('Start at: ',as.character(t1)))
   LRs_score = lapply(TGs, function(tg){
 
-    # print(tg)
     LigMat = LigMats[[tg]]
     RecMat = RecMats[[tg]]
     lr = LRpairs[[tg]]
@@ -191,8 +173,6 @@ getCPSiganlActivity <- function(exprMat, distMat, annoMat,
 
   })
   names(LRs_score) = TGs
-  # t2 <- Sys.time(); message(paste0('End at: ',as.character(t2)))
-  # t2-t1
 
   ## Target expression
   TGs_expr = lapply(TGs, function(tg){ exprMat[tg, receBars] })
@@ -205,7 +185,6 @@ getCPSiganlActivity <- function(exprMat, distMat, annoMat,
 
 }
 
-## 获取指定TG上游LRpair
 #' @title getSiganlLinks
 #' @description get the upstream signal pairs of downstream target genes in the multilayer signal network
 #'
@@ -215,10 +194,6 @@ getCPSiganlActivity <- function(exprMat, distMat, annoMat,
 #' @import dplyr
 getSiganlLinks <- function(mulNet)
 {
-
-  ## library
-
-  # loadNamespace('dplyr')
 
   ## main
 
@@ -251,13 +226,7 @@ getSiganlLinks <- function(mulNet)
 #' @importFrom SeuratWrappers RunALRA
 runImputation <- function(exprMat, use.seed = TRUE, seed = 4321)
 {
-
-  ## library
-
-  # loadNamespace('dplyr')
-  # loadNamespace('Seurat')
-  # loadNamespace('SeuratWrappers')
-
+  
   ## main
 
   expr.Impute <- CreateSeuratObject(exprMat,verbose=F)

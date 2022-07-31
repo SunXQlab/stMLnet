@@ -3,7 +3,7 @@
 #'
 #' @param SiganlActivity List, The sublist contains the activity of upstream signal pairs and expression of downstream target genes in specific celltype pair.
 #' @param Lable Character, Denotes which celltype pair to study.
-#' @param ProjectName Character, The project name of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
 #' @param NCores Numercial, set the cores for the parallel process.
 #' @param AutoPara Logical, Whether to do automatic optimization parameter.
 #' @param NTrees Numercial, number of trees in random forests model, see Seurat package for more details.
@@ -15,19 +15,9 @@
 #' @return  List, The first sublist (df_im) is the importance of upstream signal pairs (Ligand/Receptor pairs), the second sublist (df_pim) is the importance of upstream signals (ligands/receptors).
 #' @export
 #' @import dplyr ranger caret doParallel doSNOW foreach
-getSiganlImport <- function(SiganlActivity, Lable, ProjectName = NULL, NCores = NULL,
+getSiganlImport <- function(SiganlActivity, Lable, OutputDir = NULL, NCores = NULL,
                             AutoPara = TRUE, NTrees = 500, NTrys = 10, TreeMethod = 'variance',
                             NodeSize = 5,  NPert = 10){
-
-  ## library
-
-  # loadNamespace("dplyr")
-  # loadNamespace("ranger")
-  # loadNamespace("caret")
-  # loadNamespace("Metrics")
-  # loadNamespace("doParallel")
-  # loadNamespace("parallel")
-  # loadNamespace("doSNOW")
 
   ## parallel
 
@@ -58,8 +48,6 @@ getSiganlImport <- function(SiganlActivity, Lable, ProjectName = NULL, NCores = 
 
   }else{
 
-    # t1 <- Sys.time()
-    # message(paste0('Start at ',as.character(t1)))
     cl <- snow::makeSOCKcluster(NCores)
     doSNOW::registerDoSNOW(cl)
     pb <- txtProgressBar(min=0, max=n.TG, style=3)
@@ -79,14 +67,12 @@ getSiganlImport <- function(SiganlActivity, Lable, ProjectName = NULL, NCores = 
     close(pb)
     stopCluster(cl)
     gc()
-    # t2 <- Sys.time()
-    # message(paste0('End at ',as.character(t2)))
 
   }
 
   ## output
 
-  result <- mergeVarsImport(rfModelList = rfModelList, label = Lable, projectName = ProjectName)
+  result <- mergeVarsImport(rfModelList = rfModelList, label = Lable, OutputDir = OutputDir)
 
   return(result)
 
@@ -109,13 +95,6 @@ getSiganlImport <- function(SiganlActivity, Lable, ProjectName = NULL, NCores = 
 #' @import dplyr ranger caret
 runRFModel = function(trainx, trainy, auto_para = TRUE, n.trees = 500,
                       n.trys = 10, tree.method = 'variance', node.size = 5,  nPert = 10){
-
-  ## library
-
-  # loadNamespace("dplyr")
-  # loadNamespace("ranger")
-  # loadNamespace("caret")
-  # loadNamespace("Metrics")
 
   ## train set
 
@@ -218,7 +197,7 @@ runRFModel = function(trainx, trainy, auto_para = TRUE, n.trees = 500,
 
   })
   df_pIM <- Reduce("+", df_pIM)/nPert
-  t2 <- Sys.time() # 5.74 mins
+  t2 <- Sys.time()
   cat(paste0("\nEnd at: ",as.character(t2)))
   cat(paste0('\nAbout ',signif(t2-t1,digits = 4),' ',units(t2-t1)))
 
@@ -235,20 +214,16 @@ runRFModel = function(trainx, trainy, auto_para = TRUE, n.trees = 500,
 #'
 #' @param rfModelList List, the trained model and variable importance of specific target genes in the multilay signal network of cell communication
 #' @param label Character, Denotes which celltype pair to study.
-#' @param projectName Character, The project name of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
 #'
 #' @return List, The first sublist (df_im) is the importance of upstream signal pairs (Ligand/Receptor pairs), the second sublist (df_pim) is the importance of upstream signals (ligands/receptors).
 #' @export
 #' @import dplyr
-mergeVarsImport <- function(rfModelList, label, projectName){
-
-  ## library
-
-  # loadNamespace("dplyr")
+mergeVarsImport <- function(rfModelList, label, OutputDir){
 
   ## workdir
 
-  WorkDir <- paste0("./getPIM/work_",projectName)
+  WorkDir <- paste0(OutputDir,"/getPIM/")
   dir.create(WorkDir, recursive = TRUE,showWarnings = F)
   cat(paste0("WorkDir: ",WorkDir,'\n'))
 
@@ -267,7 +242,7 @@ mergeVarsImport <- function(rfModelList, label, projectName){
 
       im$Ligand = stringr::str_split(im$LRpair,"_",simplify = T)[,1]
       im$Receptor = stringr::str_split(im$LRpair,"_",simplify = T)[,2]
-      im$Target = names(res_ls)[i]
+      im$Target = names(rfModelList)[i]
       im$im_norm = im$IM/sum(im$IM)
 
     }
@@ -296,7 +271,7 @@ mergeVarsImport <- function(rfModelList, label, projectName){
     }else{
 
       pim = data.frame(regulator = gsub("shuffle_","",rownames(res$df_pIM)))
-      pim$Target = names(res_ls)[i]
+      pim$Target = names(rfModelList)[i]
       pim$pIM = res$df_pIM$pIM
       pim$type = pim$regulator %in% df_LR$Ligand
       pim$type[pim$type==TRUE] = 'Ligand'
@@ -329,11 +304,6 @@ mergeVarsImport <- function(rfModelList, label, projectName){
 #' @import dplyr ranger
 getPartImport = function(rfmodel, data_X, data_y, LRTab)
 {
-
-  ## library
-
-  # loadNamespace("dplyr")
-  # loadNamespace("ranger")
 
   ## get pred value based on OOB data and trained model
 
@@ -406,11 +376,6 @@ getPartImport = function(rfmodel, data_X, data_y, LRTab)
 getOOBPred <- function(rfmodel, data_X)
 {
 
-  ## library
-
-  # loadNamespace("dplyr")
-  # loadNamespace("ranger")
-
   ## main
 
   preds <- stats::predict(rfmodel, data_X, predict.all=TRUE)
@@ -434,10 +399,6 @@ getOOBPred <- function(rfmodel, data_X)
 #' @import dplyr
 shufflePartVars <- function(data_X,i,LRTab)
 {
-
-  ## library
-
-  # loadNamespace("dplyr")
 
   ## main
 

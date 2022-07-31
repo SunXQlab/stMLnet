@@ -7,7 +7,7 @@
 getSiganlImport(
   SiganlActivity,
   Lable,
-  ProjectName = NULL,
+  OutputDir = NULL,
   NCores = NULL,
   AutoPara = TRUE,
   NTrees = 500,
@@ -22,7 +22,7 @@ getSiganlImport(
 
 \item{Lable}{Character, Denotes which celltype pair to study.}
 
-\item{ProjectName}{Character, The project name of running jobs for now. Generate a working directory to save the final result.}
+\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
 
 \item{NCores}{Numercial, set the cores for the parallel process.}
 

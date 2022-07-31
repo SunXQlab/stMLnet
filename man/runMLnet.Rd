@@ -10,13 +10,13 @@ runMLnet(
   LigClus = NULL,
   RecClus = NULL,
   Normalize = T,
-  NormMethod = "LogNormalize",
+  NormMethod = "LogNormalze",
+  OutputDir = NULL,
+  Databases = NULL,
   logfc.ct = 0.1,
   pct.ct = 0.05,
   pval.ct = 0.05,
   expr.ct = 0.1,
-  ProjectName = NULL,
-  Databases = NULL,
   TGList = NULL,
   LigList = NULL,
   RecList = NULL
@@ -35,6 +35,10 @@ runMLnet(
 
 \item{NormMethod}{Character, Denotes which normalization method to use. Available options are: LogNormalze, SCTransform. See Seurat package for more details.}
 
+\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
+
+\item{Databases}{List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).}
+
 \item{logfc.ct}{Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.1.}
 
 \item{pct.ct}{Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.}
@@ -42,10 +46,6 @@ runMLnet(
 \item{pval.ct}{Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.}
 
 \item{expr.ct}{Numercial, Screening threshold for high expressed gene in groups of cells. Default is 0.05.}
-
-\item{ProjectName}{Character, The project name of running jobs for now. Generate a working directory to save the final result.}
-
-\item{Databases}{List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).}
 
 \item{TGList}{List, The target genes of interest in groups of cells (RecClus).}
 

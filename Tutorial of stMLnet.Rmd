@@ -83,11 +83,11 @@ for (pkg in pkgs) { library(pkg, character.only = T) }
 
 ### Load DATA
 
-载入示例数据库ex_databases，包括三个子列表：LigRec.DB、RecTF.DB和TFTG.DB。子列表有source，target，score三列构成，其中source列在以上三个子列表里分别表示配体、受体、转录因子等信号分子，而target列则分别表示受体、转录因子、靶基因等信号分子。LigRec.DB和TFTG.DB的score列表示相互作用在收集的数据库中出现的次数，而RecTF.DB的score列表示相互作用在收集的数据库中出现的预测概率。，具体分析参考[论文](xxxx)和[代码](xxxxx)。
+载入示例数据库ex_databases，包括三个子列表：LigRec.DB、RecTF.DB和TFTG.DB。子列表有source，target，score三列构成，其中source列在以上三个子列表里分别表示配体、受体、转录因子等信号分子，而target列则分别表示受体、转录因子、靶基因等信号分子。LigRec.DB和TFTG.DB的score列表示相互作用在收集的数据库中出现的次数，而RecTF.DB的score列表示相互作用在收集的数据库中出现的预测概率。
 
 ```{r echo=TRUE}
 
-inputDir <- "F:/finalVersion/Rpackage/stMLnet.1.0.0/sup/data/"
+inputDir <- paste0(getwd(),"/data/")
 load(paste0(inputDir,'ex_databases.rda'))
 str(ex_databases,max.level=2)
 
@@ -98,11 +98,11 @@ str(ex_databases,max.level=2)
 - exprMat: 标准化的表达矩阵
 - annoMat: 细胞类型注释矩阵
 - locaMat: 空间位置信息矩阵
-- ligs_of_inter: 不同类型细胞的潜在配体列表，来源于Seurat的FindMarker结果。
-- recs_of_inter: 不同类型细胞的潜在受体列表，来源于对表达量的过滤。
-- tgs_of_inter: 不同类型细胞的潜在靶基因列表，来源于Giotto的findICG结果。
+- ligs_of_inter: 不同类型细胞的潜在配体列表。
+- recs_of_inter: 不同类型细胞的潜在受体列表。
+- tgs_of_inter: 不同类型细胞的潜在靶基因列表。
 
-其中，ligs_of_inter、recs_of_inter和tgs_of_inter可根据上述三个输入矩阵进行自动计算。（findICG还未实现）
+其中，ligs_of_inter、recs_of_inter和tgs_of_inter可根据上述三个输入矩阵进行自动计算。
 
 ```{r echo=TRUE}
 
@@ -111,18 +111,19 @@ str(ex_inputs,max.level=2)
 
 ```
 
-示例数据来自于10X Visiumd的[乳腺癌数据集](https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Breast_Cancer_Block_A_Section_1)，我们使用seurat (Version4.0.2) 分析空间转录组数据，并使用RCTD方法进行解卷积处理，具体分析参考[论文](xxxx)和[代码](xxxxx)。处理好的数据集可以在[zenodo](xxxxx)或者[github](xxxxx)下载。
+示例数据来自于10X Visiumd的[乳腺癌数据集](https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Breast_Cancer_Block_A_Section_1)，我们使用seurat (Version4.0.2) 分析空间转录组数据，并使用RCTD方法进行解卷积处理。
 
 ### create mulityayer network
 
-分析乳腺癌微环境中不同类型细胞配对间的多层信号网络
+分析乳腺癌微环境中不同类型细胞配对间的多层信号网络，设置当前目录为输出结果保存路径。
 
 ```{r results='hide'}
 
+outputDir <- getwd()
 resMLnet <- runMLnet(ExprMat = ex_inputs$exprMat, AnnoMat = ex_inputs$annoMat,
                      LigClus = NULL, RecClus = NULL, Normalize = F, NormMethod = "LogNormalize",
                      logfc.ct = 0.1, pct.ct = 0.05, pval.ct = 0.05, expr.ct = 0.1,
-                     ProjectName = '0511-1', Databases = NULL,
+                     OutputDir = outputDir, Databases = NULL,
                      TGList=ex_inputs$tgs_of_inter, LigList=ex_inputs$ligs_of_inter, RecList=ex_inputs$recs_of_inter)
 
 ```
@@ -148,30 +149,22 @@ rownames(DistMat) <- colnames(ex_inputs$exprMat)
 
 ```
 
-```{r  echo=TRUE}
-DistMat[1:4,1:4]
-```
-
 ```{r  results='hide'}
 exprMat.Impute <- runImputation (exprMat = ex_inputs$exprMat)
-```
-
-```{r  echo=TRUE}
-exprMat.Impute[1:4,1:4]
 ```
 
 载入上一步生成的多层信号网络，用于后续计算配对信号的活性。
 
 ```{r echo=TRUE}
 
-inputDir <- paste0(getwd(),'/runscMLnet/work_0511-1/')
-files <- list.files(inputDir)
+MLnetDir <- paste0(outputDir,'/runscMLnet/')
+files <- list.files(MLnetDir)
 files <- files[grep('TME',files,invert = T)]
 
 ex_mulnetlist <- list()
 for (f in files) {
   
-  mlnet <- readRDS(paste0(getwd(),'/runscMLnet/work_0511-1/',f,"/scMLnet.rds"))
+  mlnet <- readRDS(paste0(MLnetDir,f,"/scMLnet.rds"))
   if(nrow(mlnet$LigRec)!=0) ex_mulnetlist[[f]] = mlnet
   
 }
@@ -211,9 +204,8 @@ for (cluster in clusters) {
                                                 AnnoMat = ex_inputs$annoMat,
                                                 MulNetList = ex_mulnetlist,
                                                 Receiver = cluster, Sender = Sender,
-                                                Group = NULL, far.ct = 0.75, close.ct = 0.25,
-                                                Downsample = FALSE, ProjectName = '0511-1')
-
+                                                OutputDir = outputDir)
+  
 }
 
 ```
@@ -233,13 +225,13 @@ resSigActList$Malignant$Endothelial_Malignant$TGs_expr$ABHD2[1:4]
 
 ```{r echo=TRUE}
 
-inputDir <- paste0(getwd(),'/runModel/work_0511-1/')
-files <- list.files(inputDir)
+ActivityDir <- paste0(outputDir,'/runModel/')
+files <- list.files(ActivityDir)
 files[1:4]
 
 ```
 
-定量分析不同类型细胞配对的多层信号网络的上下游调控关系，需要设置输出文件名`projectName`，运行核数`NCores`等参数。注意，随机模型默认使用交叉验证和随机搜索实现自动调参（约耗费2小时），设置`AutoPara = FALSE`和其他相应参数（`NTrys`, `TreeMethod`, `NodeSize`等）可关闭自动调参，节约时间。
+定量分析不同类型细胞配对的多层信号网络的上下游调控关系，运行核数`NCores`等参数。注意，随机模型默认使用交叉验证和随机搜索实现自动调参（约耗费2小时），设置`AutoPara = FALSE`和其他相应参数（`NTrys`, `TreeMethod`, `NodeSize`等）可关闭自动调参，节约时间。
 
 ```{r eval=FALSE}
 
@@ -247,13 +239,14 @@ time_ls <- c()
 for(f in files){
   
   label <- paste(unlist(strsplit(f,'[_.]'))[3:4],collapse = '-')
-  LRTG_allscore <- readRDS(paste0(getwd(),'/runModel/work_work-in-0511-1/',f))
+  LRTG_allscore <- readRDS(paste0(ActivityDir,f))
   message(paste0('running jobs: ',label))
     
   t1 <- Sys.time()
-  getSiganlImport(SiganlActivity = LRTG_allscore, Lable = label, ProjectName = '0511-1',
-                  NCores = 6, AutoPara = TRUE, NTrees = 500, NTrys = 10,
-                  TreeMethod = 'variance', NodeSize = 5,  NPert = 10)
+  getSiganlImport(
+    SiganlActivity = LRTG_allscore, Lable = label, OutputDir = outputDir,
+    NCores = 6, AutoPara = TRUE, NTrees = 500, NTrys = 10,
+    TreeMethod = 'variance', NodeSize = 5,  NPert = 10)
   t2 <- Sys.time()
   time_ls <- c(time_ls,paste(signif(t2-t1,4),units(signif(t2-t1,4)),sep = ' '))
   
@@ -265,8 +258,8 @@ for(f in files){
 
 ```{r echo=TRUE}
 
-outputDir <- paste0(getwd(),'/getPIM/work_0511-1/')
-files <- list.files(outputDir)
+ImportDir <- paste0(outputDir,'/getPIM/')
+files <- list.files(ImportDir)
 head(files,2)
 tail(files,2)
 
@@ -277,7 +270,7 @@ tail(files,2)
 ```{r echo=TRUE}
 
 f <- files[grepl('Tcell-Malignant',files) & grepl('_im_',files)]
-LRTG_im <- readRDS(paste0(getwd(),'/getPIM/work_0511-1/',f))
+LRTG_im <- readRDS(paste0(ImportDir,f))
 rownames(LRTG_im) <- NULL
 head(LRTG_im)
 
@@ -288,9 +281,29 @@ head(LRTG_im)
 ```{r echo=TRUE}
 
 f <- files[grepl('Tcell-Malignant',files) & grepl('_pim_',files)]
-LRTG_pim <- readRDS(paste0(getwd(),'/getPIM/work_0511-1/',f))
+LRTG_pim <- readRDS(paste0(ImportDir,f))
 rownames(LRTG_pim) <- NULL
 head(LRTG_pim)
+
+```
+
+### 整合分析
+
+可以调用主函数（默认参数）完成上述细胞通讯活动的推断和定量分析的三个步骤，同样地设置工作目录为当前目录,返回结果`resList`为上述三个步骤的输出结果的保存路径。
+
+```{r results='hide'}
+
+outputDir <- getwd()
+
+resList <- runstMLnet(ExprMat = ex_inputs$exprMat, AnnoMat = ex_inputs$annoMat,
+                      DistMat, LigClus = NULL, RecClus = NULL,
+                      Normalize = F, 
+                      OutputDir = outputDir,
+                      TGList=ex_inputs$tgs_of_inter, 
+                      LigList=ex_inputs$ligs_of_inter, 
+                      RecList=ex_inputs$recs_of_inter)
+
+resList
 
 ```
 
@@ -311,9 +324,9 @@ scales::show_col(myColor$Keys)
 
 ```{r echo=TRUE}
 
-MLnetDir <- paste0(getwd(),'/runscMLnet/work_0511-1/')
-ActivityDir <- paste0(getwd(),'/runModel/work_0511-1/')
-ImportDir <- paste0(getwd(),'/getPIM/work_0511-1/')
+MLnetDir <- paste0(outputDir,'/runscMLnet/')
+ActivityDir <- paste0(outputDir,'/runModel/')
+ImportDir <- paste0(outputDir,'/getPIM/')
 
 ```
 

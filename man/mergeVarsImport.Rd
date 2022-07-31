@@ -4,14 +4,14 @@
 \alias{mergeVarsImport}
 \title{mergeVarsImport}
 \usage{
-mergeVarsImport(rfModelList, label, projectName)
+mergeVarsImport(rfModelList, label, OutputDir)
 }
 \arguments{
 \item{rfModelList}{List, the trained model and variable importance of specific target genes in the multilay signal network of cell communication}
 
 \item{label}{Character, Denotes which celltype pair to study.}
 
-\item{projectName}{Character, The project name of running jobs for now. Generate a working directory to save the final result.}
+\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
 }
 \value{
 List, The first sublist (df_im) is the importance of upstream signal pairs (Ligand/Receptor pairs), the second sublist (df_pim) is the importance of upstream signals (ligands/receptors).

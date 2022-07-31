@@ -11,7 +11,7 @@
 #' @param pct.ct Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.
 #' @param pval.ct Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.
 #' @param expr.ct Numercial, Screening threshold for high expressed gene in groups of cells. Default is 0.05.
-#' @param ProjectName Character, The project name of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
 #' @param Databases List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).
 #' @param TGList List, The target genes of interest in groups of cells (RecClus).
 #' @param LigList List, The potential ligands in groups of cells (LigClus).
@@ -24,15 +24,10 @@
 #' @importFrom stats quantile
 #'
 runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
-                     Normalize = T, NormMethod = "LogNormalize",
+                     Normalize = T, NormMethod = 'LogNormalze', 
+                     OutputDir = NULL, Databases = NULL,
                      logfc.ct = 0.1, pct.ct = 0.05, pval.ct = 0.05, expr.ct = 0.1,
-                     ProjectName = NULL, Databases = NULL,
                      TGList=NULL, LigList=NULL, RecList=NULL){
-
-  ## library
-
-  # loadNamespace('Seurat')
-  # loadNamespace('dplyr')
 
   ## databases
 
@@ -67,12 +62,7 @@ runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
 
   ## work directory
 
-  if(is.null(ProjectName)){
-
-    ProjectName <- format(Sys.time(),format="%Y-%m-%d_%H-%M-%S")
-
-  }
-  WorkDir <- paste0("./runscMLnet/work_",ProjectName)
+  WorkDir <- paste0(OutputDir,'/runscMLnet/')
   dir.create(WorkDir, recursive = TRUE,showWarnings = F)
   cat(paste0("WorkDir: ",WorkDir,'\n'))
 
@@ -95,7 +85,7 @@ runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
       parameters = list(
         LigClus = LigClus,
         RecClus = RecClus,
-        Project = ProjectName,
+        WorkDir = WorkDir,
         logfc.ct = logfc.ct,
         pct.ct = pct.ct,
         pval.ct = pval.ct,
@@ -144,7 +134,6 @@ runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
       df_degs_clu <- inputs$data$df_degs[[Clu]]
       inputs$data$ls_targets[[Clu]] <- rownames(df_degs_clu)[
         df_degs_clu$p_val_adj <= 0.05 & abs(df_degs_clu$avg_log2FC) >= 1
-        # potential target filter: abs(avg_log2FC)>=1 & padj<=0.05
       ]
 
     }
@@ -276,12 +265,7 @@ runNormalize <- function(inputs, method = c("LogNormalze",'SCTransform'))
 #' @import Seurat dplyr
 #'
 getDiffExpGene <- function(inputs)
-{
-
-  ## library
-
-  # loadNamespace('Seurat')
-  # loadNamespace('dplyr')
+{ 
 
   ## parameters
 
@@ -408,7 +392,7 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
   ls_ligands <- inputs$data$ls_ligands
   ls_receptors <- inputs$data$ls_receptors
   ls_targets <- inputs$data$ls_targets
-  workdir <- paste0("./runscMLnet/work_",inputs$parameters$Project)
+  workdir <- inputs$parameters$WorkDir
 
   ## database
 
