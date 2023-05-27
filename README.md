@@ -19,6 +19,8 @@ The repository is centered around the `R` module:
 ## Usage
 To learn how to use this tool, chek `Tutorial of stMLnet.Rmd`.
 
+A web-based application of stMLnet is also developed and available at www.stmlnet.top/net.
+
 ## Examples and Reproducibility
 All the examples and the reproducibility codes for the plots in the paper could be found in the `stMLnet-AnalysisCode` repository which includes:
 
