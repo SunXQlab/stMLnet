@@ -54,7 +54,7 @@ After building dependent enviorment, you can install stMLnet from github:
 
 To learn how to use this tool, check [Tutorial of stMLnet.Rmd](https://github.com/SunXQlab/stMLnet/blob/main/Tutorial%20of%20stMLnet.Rmd). This tutorial shows the installation and application of stMLnet in the demo dataset, which is derived from the breast cancer dataset of the 10X Visiumd website (see more details in [stMLnet-AnalysisCode](https://github.com/SunXQlab/stMLnet-AnalysisCode/tree/main) repository). The input of this tutorial can be found in the `data` folder, and it will take about 0.5~2 hours to run this demo (excluding environment installation) mainly depending on the parameter setting in the quantitative analysis step.
 
-We also provide a web-based application of stMLnet, available at www.stmlnet.top/net.
+We also provide a web-based application to demonstrate the functionality and visualization of stMLnet, available at www.stmlnet.top/net.
 
 ## Examples and Reproducibility
 
