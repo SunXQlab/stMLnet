@@ -32,10 +32,9 @@ To install and use the stMLnet package, please make sure you have already instal
        # Installing related dependencies.
        pkgs <- c( 'caret','doParallel','snow','foreach','ggplot2','ggsci','clusterProfiler','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
        for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
-       if(!requireNamespace('devtools')){install.packages('devtools', repos = 'https://cloud.r-project.org')} 
+       
        devtools::install_version("spatstat.core", version = "2.4-4", repos="https://cloud.r-project.org/")
        devtools::install_version("Seurat", version = "4.0.2", repos="https://cloud.r-project.org/")
-       if(!requireNamespace('remotes')){install.packages('remotes', repos = 'https://cloud.r-project.org')}
        remotes::install_github("satijalab/seurat-wrappers")
        remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
 
