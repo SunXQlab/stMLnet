@@ -17,11 +17,48 @@ The repository is centered around the `R` module:
 * `visualize_cell_communication` contains the scripts to visualize cell-cell interations <br>
 
 ## Usage
-To learn how to use this tool, chek `Tutorial of stMLnet.Rmd`.
 
-A web-based application of stMLnet is also developed and available at www.stmlnet.top/net.
+To install and use the stMLnet package, please make sure you have already installed related dependencies:
+
+       # Check if the following dependencies are installed.
+       pkgs <- c('Seurat','SeuratWrappers','Giotto','reshape2','stringr','dplyr', # for data preprocessing
+                        'caret','doParallel','snow','foreach', # for quantitative model
+                         'ggplot2','ggsci','clusterProfiler','org.Hs.eg.db', 'plotrix','ggalluvial','ggraph','igraph' # for visualization
+                         )
+       for (pkg in pkgs) {
+         if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
+       }
+       
+       # Installing related dependencies.
+       pkgs <- c( 'caret','doParallel','snow','foreach','ggplot2','ggsci','clusterProfiler','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
+       for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
+       if(!requireNamespace('devtools')){install.packages('devtools', repos = 'https://cloud.r-project.org')} 
+       devtools::install_version("spatstat.core", version = "2.4-4", repos="https://cloud.r-project.org/")
+       devtools::install_version("Seurat", version = "4.0.2", repos="https://cloud.r-project.org/")
+       if(!requireNamespace('remotes')){install.packages('remotes', repos = 'https://cloud.r-project.org')}
+       remotes::install_github("satijalab/seurat-wrappers")
+       remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
+
+If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
+
+       # Bash
+       # built a docker image
+       # ensure that dockerfile and postInstall are in the same path
+       docker bulid -f Dockerfile -t stMLnetEnv:0.1 .
+       # Run docker image
+       docker run -it stMLnetEnv:0.1 /bin/bash
+
+After building dependent enviorment, you can install stMLnet from github:
+
+       devtools::install_github("SunXQlab/stMLnet")
+       library(stMLnet)
+
+To learn how to use this tool, check [Tutorial of stMLnet.Rmd](https://github.com/SunXQlab/stMLnet/blob/main/Tutorial%20of%20stMLnet.Rmd). This tutorial shows the installation and application of stMLnet in the demo dataset, which is derived from the breast cancer dataset of the 10X Visiumd website. We analyzed this spatial transcriptomic data using Seurat (Version 4.0.2) and performed deconvolution using the RCTD method (more details on [stMLnet-AnalysisCode](https://github.com/SunXQlab/stMLnet-AnalysisCode/tree/main) repository). The input of this tutorial can be found in the `data` folder, and it will take about 0.5~2 hours to run this demo (excluding environment installation) mainly depending on the parameter setting in the quantitative analysis step.
+
+We also provide a web-based application of stMLnet, available at www.stmlnet.top/net.
 
 ## Examples and Reproducibility
+
 All the examples and the reproducibility codes for the plots in the paper could be found in the `stMLnet-AnalysisCode` repository which includes:
 
 * `prior_knowledge` contains the code used for collection and integration of prior databases <br>
@@ -33,7 +70,6 @@ All the examples and the reproducibility codes for the plots in the paper could 
 * `code` contains all functions of stMLnet to analysis cell-cell interactions <br>
 
 See detials therein.
-
 
 ## Contact
 If you have questions or suggestions for imrpoving stMLnet, please contact Xiaoqiang Sun via sunxq6@mail.sysu.edu.cn.
