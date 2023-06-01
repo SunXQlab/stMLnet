@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Library
 
-安装依赖R包：Seurat, SeuratWrappers, reshape2, stringr, dplyr
+Install the dependency R package: Seurat, SeuratWrappers, reshape2, stringr, dplyr
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -30,7 +30,7 @@ for (pkg in pkgs) {
 
 ```
 
-安装模型依赖R包：caret, doParallel, snow, foreach, ranger
+Install the dependency R package of model: caret, doParallel, snow, foreach, ranger
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -44,7 +44,7 @@ for (pkg in pkgs) {
 
 ```
 
-安装画图R包：plotrix, clusterProfiler, ggplot2, ggalluvial, ggraph, ggsci, igraph, org.Hs.eg.db
+Install the dependency R package of visualization: plotrix, clusterProfiler, ggplot2, ggalluvial, ggraph, ggsci, igraph, org.Hs.eg.db
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -60,7 +60,7 @@ for (pkg in pkgs) {
 
 ```
 
-安装stMLnet包
+Install stMLnet
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -70,7 +70,7 @@ if (!requireNamespace('stMLnet')) { cat('please install and library the package:
 
 ```
 
-加载R包
+Load environment
 
 ```{r include=FALSE}
 
@@ -81,9 +81,9 @@ for (pkg in pkgs) { library(pkg, character.only = T) }
 
 ```
 
-### Load DATA
+### Load data
 
-载入示例数据库ex_databases，包括三个子列表：LigRec.DB、RecTF.DB和TFTG.DB。子列表有source，target，score三列构成，其中source列在以上三个子列表里分别表示配体、受体、转录因子等信号分子，而target列则分别表示受体、转录因子、靶基因等信号分子。LigRec.DB和TFTG.DB的score列表示相互作用在收集的数据库中出现的次数，而RecTF.DB的score列表示相互作用在收集的数据库中出现的预测概率。
+Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
 
 ```{r echo=TRUE}
 
@@ -92,17 +92,16 @@ load(paste0(inputDir,'ex_databases.rda'))
 str(ex_databases,max.level=2)
 
 ```
+Load demo data `ex_inputs`, which includes:
 
-载入示例数据ex_inputs，包括:
+    `exprMat`: Normalized expression matrix.
+    `annoMat`: Cell type annotation matrix.
+    `locaMat`: Spatial location information matrix.
+    `ligs_of_inter`: Potential ligand lists for different cell types.
+    `recs_of_inter`: Potential receptor lists for different cell types.
+    `tgs_of_inter`: Potential target gene lists for different cell types.
 
-- exprMat: 标准化的表达矩阵
-- annoMat: 细胞类型注释矩阵
-- locaMat: 空间位置信息矩阵
-- ligs_of_inter: 不同类型细胞的潜在配体列表。
-- recs_of_inter: 不同类型细胞的潜在受体列表。
-- tgs_of_inter: 不同类型细胞的潜在靶基因列表。
-
-其中，ligs_of_inter、recs_of_inter和tgs_of_inter可根据上述三个输入矩阵进行自动计算。
+The `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` can be automatically computed based on the aforementioned three input matrices.
 
 ```{r echo=TRUE}
 
@@ -111,11 +110,11 @@ str(ex_inputs,max.level=2)
 
 ```
 
-示例数据来自于10X Visiumd的[乳腺癌数据集](https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Breast_Cancer_Block_A_Section_1)，我们使用seurat (Version4.0.2) 分析空间转录组数据，并使用RCTD方法进行解卷积处理。
+The demo data is derived from the breast cancer dataset of 10X Visiumd, which can be found at [here](https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Breast_Cancer_Block_A_Section_1). We analyzed this spatial transcriptomic data using Seurat (Version 4.0.2) and performed deconvolution using the RCTD method (more details on [stMLnet-AnalysisCode](https://github.com/SunXQlab/stMLnet-AnalysisCode/tree/main) repository).
 
 ### create mulityayer network
 
-分析乳腺癌微环境中不同类型细胞配对间的多层信号网络，设置当前目录为输出结果保存路径。
+Analyze the mulityayer signaling network between different cell pairs in the breast cancer microenvironment and set the current directory as the output result saving path.
 
 ```{r results='hide'}
 
@@ -128,7 +127,8 @@ resMLnet <- runMLnet(ExprMat = ex_inputs$exprMat, AnnoMat = ex_inputs$annoMat,
 
 ```
 
-结果主要包括受体细胞与其他类型细胞的多层信号网络以及具体统计信息，以肿瘤细胞为例：`resMLnet$mlnets$Malignant`包括所有其他类型细胞（作为配体细胞）与肿瘤细胞的多层信号网络，`resMLnet$details$Malignant`包含上述多个多层信号网络的统计信息。
+The results mainly include the multilayer signaling network between receiver cells and other cell types, as well as specific statistical information. Taking Malignant cells as an example, `resMLnet$mlnets$Malignant` includes the multilayer signaling network between Malignant cells (as the receiver cells) and all other cell types (as the Sender cells). `resMLnet$details$Malignant` contains the statistical information of the aforementioned multiple multilayer signaling networks.
+
 
 ```{r echo=TRUE}
 
@@ -139,7 +139,7 @@ resMLnet$details$Malignant[,1:3]
 
 ### calculate Signal Activity
 
-根据空间位置信息计算细胞配对的空间距离并对表达矩阵进行填补处理，用于后续计算配对信号的活性。
+Based on the spatial location information, we can calculate the spatial distances between cell pairs and perform imputation on the expression matrix to prepare it for subsequent calculation of pair-wise signaling activity.
 
 ```{r results='hide'}
 
@@ -153,7 +153,7 @@ rownames(DistMat) <- colnames(ex_inputs$exprMat)
 exprMat.Impute <- runImputation (exprMat = ex_inputs$exprMat)
 ```
 
-载入上一步生成的多层信号网络，用于后续计算配对信号的活性。
+Load the generated multilayer signaling network from the previous step for subsequent calculation of pairwise signaling activity.
 
 ```{r echo=TRUE}
 
@@ -171,7 +171,7 @@ for (f in files) {
 
 ```
 
-也可以直接从上一步结果获取，需要进行过滤。
+You can also directly retrieve it from the results of the previous step, with the need for filtering.
 
 ```{r echo=TRUE}
 
@@ -190,7 +190,7 @@ str(ex_mulnetlist[1:3], max.level = 2)
 
 ```
 
-基于细胞配对的多层信号网络获取上游配对信号活性和下游靶基因表达量。
+Retrieve the upstream pair-wise signaling activity and downstream target gene expression levels based on the cell pair multilayer signaling network.
 
 ```{r results='hide'}
 
@@ -210,7 +210,7 @@ for (cluster in clusters) {
 
 ```
 
-结果主要包括基于不同类型细胞配对的多层信号网络计算的上游配对信号（配体-受体）活性以及受体细胞的下游靶基因表达量。以肿瘤细胞为例：`resSigActList$Malignant$Endothelial_Malignant`储存了以内皮细胞为配体细胞，肿瘤细胞为受体细胞的上游配对信号活性以及下游靶基因表达量，其中`LRs_score`是上游配对信号活性矩阵，以受体细胞为行，以上游配对信号为列，记录了下游靶基因对应的上游配对信号在不同受体细胞上的具体活性，`TGs_expr`是下游靶基因表达量向量，记录了靶基因在不同受体细胞上的具体表达量。上游配对信号和下游靶基因的对应关系来自上一步计算的多层信号网络。
+The results primarily include the calculation of upstream pair-wise signaling activity (ligand-receptor) and downstream target gene expression levels based on the multilayer signaling network for different cell type pairs. Taking Malignant cells as an example, `resSigActList$Malignant$Endothelial_Malignant` stores the upstream pair-wise signaling activity and downstream target gene expression levels between endothelial cells (as the Sender cells) and Malignant cells (as the Receiver cells). In this, `LRs_score` represents the matrix of upstream pair-wise signaling activity, with receiver cells as rows and upstream signaling pairs as columns, recording the specific activities of downstream target genes corresponding to the upstream pair-wise signaling on different receptor cells. `TGs_expr` represents the vector of downstream target gene expression levels, recording the specific expression levels of target genes on different receptor cells. The correspondence between upstream pair-wise signaling and downstream target genes is derived from the multilayer signaling network calculated in the previous step.
 
 ```{r echo=TRUE}
 
@@ -221,7 +221,7 @@ resSigActList$Malignant$Endothelial_Malignant$TGs_expr$ABHD2[1:4]
 
 ### calculate signal importance
 
-载入调控定量分析模型的输入和输出。
+Load the input and output of the regulatory quantitation analysis model.
 
 ```{r echo=TRUE}
 
@@ -231,7 +231,7 @@ files[1:4]
 
 ```
 
-定量分析不同类型细胞配对的多层信号网络的上下游调控关系，运行核数`NCores`等参数。注意，随机模型默认使用交叉验证和随机搜索实现自动调参（约耗费2小时），设置`AutoPara = FALSE`和其他相应参数（`NTrys`, `TreeMethod`, `NodeSize`等）可关闭自动调参，节约时间。
+Quantitatively analyze the upstream and downstream regulatory relationships in the multilayer signaling network of different cell type pairs. Note that the random model by default uses cross-validation and random search for automatic parameter tuning (which takes approximately 2 hours in demo dataset). Setting `AutoPara = FALSE` and other corresponding parameters (`NTrys`, `TreeMethod`, `NodeSize`, etc.) can disable automatic parameter tuning and save running time.
 
 ```{r eval=FALSE}
 
@@ -254,7 +254,7 @@ for(f in files){
 
 ```
 
-结果主要包括基于不同类型细胞配对的多层信号网络计算的上下游信号的定量调控关系。命名规则`为LRTG_im/pim_clean_celltypeA-celltypeB`，im代表上游配对信号（配体-受体）与下游靶基因的调控关系，pim代表上游信号（配体或受体）与下游靶基因的调控关系。celltypeA代表配体细胞，celltypeB代表受体细胞。
+The results primarily include the quantified regulatory relationships between upstream and downstream signals based on the multilayer signaling network of different cell type pairs. The naming convention is `LRTG_im/pim_clean_celltypeA-celltypeB`, where "im" represents the regulatory relationship between upstream signaling (ligand-receptor) and downstream target genes, and "pim" represents the regulatory relationship between upstream signals (ligand or receptor) and downstream target genes. "celltypeA" represents cell type of Sender cells, and "celltypeB" represents cell typethe of Receiver cells.
 
 ```{r echo=TRUE}
 
@@ -265,7 +265,8 @@ tail(files,2)
 
 ```
 
-以T细胞和肿瘤细胞相互作用为例：`LRTG_im_clean_Tcell-Malignant`储存了以T细胞为配体细胞，肿瘤细胞为受体细胞的上游配对信号`LRpair`与下游靶基因`Target`的调控关系，其中`IM`是定量分析模型输出的特征重要性打分，`im_norm`是标准化后的重要性打分。
+Taking the interaction between T cells and Malignant cells as an example, `LRTG_im_clean_Tcell-Malignant` stores the regulatory relationship between the upstream pair-wise signal LRpair (ligand-receptor) and downstream target genes Target, with T cells as the Sender cells and Malignant cells as the Receiver cells. In this context, `IM` represents the feature importance scores obtained from the quantitative analysis model, and `im_norm` represents the normalized importance scores.
+
 
 ```{r echo=TRUE}
 
@@ -275,8 +276,7 @@ rownames(LRTG_im) <- NULL
 head(LRTG_im)
 
 ```
-
-`LRTG_pim_clean_Tcell-Malignant`储存了以T细胞为配体细胞，肿瘤细胞为受体细胞的上游信号`Regulator`与下游靶基因`Target`的调控关系，其中`pIM`是定量分析模型输出的经过调整的特征重要性打分，`type`表示上游信号的实际信号类型。
+`LRTG_pim_clean_Tcell-Malignant` stores the regulatory relationship between the upstream signal Regulator (ligand or receptor) and downstream target genes Target, with T cells as the Sender cells and Malignant cells as the Receiver cells. In this case, `pIM` represents the adjusted feature importance scores obtained from the quantitative analysis model, and `type` indicates the actual signal type of the upstream signal.
 
 ```{r echo=TRUE}
 
@@ -287,9 +287,9 @@ head(LRTG_pim)
 
 ```
 
-### 整合分析
+### One setp analysis
 
-可以调用主函数（默认参数）完成上述细胞通讯活动的推断和定量分析的三个步骤，同样地设置工作目录为当前目录,返回结果`resList`为上述三个步骤的输出结果的保存路径。
+You can call the main function (with default parameters) to complete the three steps of inference and quantitative analysis of the cellular communication activities mentioned above. Similarly, set the working directory as the current directory. The function will return the save path of the output results for the three steps as `resList`.
 
 ```{r results='hide'}
 
@@ -309,7 +309,8 @@ resList
 
 ### visualize cell comunication
 
-准备画图颜色对象myColor，其中Celltypes对应不同类型细胞的颜色，Keys对应不同类型信号的颜色，Nodes对应其他必备颜色（不影响画图）。
+Prepare the color object, `myColor`, for plotting. In `myColor`, `Celltypes` corresponds to the colors for different cell types, `Keys` corresponds to the colors for different types of signals, and `Nodes` corresponds to other essential colors.
+
 
 ```{r echo=TRUE}
 
@@ -320,7 +321,7 @@ scales::show_col(myColor$Keys)
 
 ```
 
-准备画图输入数据，其中`MLnetDir`是不同细胞配对的多层信号网络结果的存储路径，`ActivityDir`储存了不同细胞配对的多层信号网络的上游配对信号活性，`ImportDir`储存了不同细胞配对的多层信号网络的上下游调控关系定量分析结果。
+Prepare the input data for plotting. Here, `MLnetDir` represents the storage path of the multilayer signaling network results for different cell type pairs. `ActivityDir` stores the upstream pair-wise signaling activity of the multilayer signaling network for different cell type pairs, and `ImportDir` stores the results of the quantitative analysis of the upstream and downstream regulatory relationships in the multilayer signaling network for different cell type pairs.
 
 ```{r echo=TRUE}
 
@@ -330,11 +331,11 @@ ImportDir <- paste0(outputDir,'/getPIM/')
 
 ```
 
-图像存储于当前工作目录下自动创建的`visualize_CCI`文件夹，用户可以设置`gtitle`来标识当前任务对应的不同可视化输出。
+These results will be stored in the automatically created "visualize_CCI" folder in the current working directory. Users can set `gtitle` to identify different visualization outputs corresponding to the current task.
 
-#### 细胞通讯网络图
+#### NetworkPlot 
 
-细胞通讯网络图（cell-communication network）展示微环境中不同类型细胞配对间细胞相互作用强度。其中节点颜色代表不同类型细胞，边代表细胞之间存在相互作用，边的颜色与配体细胞保持一致，边的粗细可以代表不同含义（上游配体-受体配对信号数量，下游靶基因数量，（标准化）特征重要性的均值或求和等）。
+The NetworkPlot of cell-communication visualizes the interaction strength between different cell type pairs in the microenvironment. In this graph, node colors represent different cell types, edges represent the presence of interactions between cells, and the color of the edges corresponds to the Sender cells. The thickness of the edges can represent different meanings, such as the number of upstream ligand-receptor pairs, the number of downstream target genes, or the (normalized) mean or sum of feature importance.
 
 ```{r eval=FALSE}
 
@@ -354,9 +355,10 @@ DrawNetworkPlot(InputDir = ImportDir, Metric = Metric, ColorDB = ColorDB, gtitle
 
 ```
 
-#### 多层信号网络图
+#### Multilayer signaling network (MLnetPlot)
 
-多层信号网络图（Multilayer signaling network）展示了特定类型细胞受到指定配体/受体调控的多层信号网络，根据重要性打分筛选展示的下游靶基因，颜色代表了多层信号网络中不同信号类型(配体，受体，转录因子，靶基因)，边代表信号分子相互作用。以T细胞和肿瘤细胞相互作用为例，分别展示了T细胞分泌的SEMA4D和TGFB1与肿瘤细胞内部靶基因的调控信号网络。
+The multilayer signaling network displays the multilayer signaling network for a specific cell type regulated by specified ligands/receptors. The downstream target genes are filtered and displayed based on their importance scores. The colors represent different types of signals (ligands, receptors, transcription factors, target genes) within the multilayer signaling network, and the edges represent the interactions between signaling molecules. Taking the interaction between T cells and Malignant cells as an example, the graph illustrates the regulatory signaling network of the internally targeted genes in Malignant cells by T cell-secreted SEMA4D and TGFB1.
+
 
 ```{r echo=TRUE, fig.height=4.5, fig.width=7}
 
@@ -377,9 +379,10 @@ DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Tcell_Malignant/scMLnet.rds'),
 ```
 
 
-#### 配对信号活性图
+#### LR activity plot (edge bundling plot)
 
-配对信号活性图（ligand-receptor pairs activity diagram ）展示了微环境中受体细胞与其他类型细胞间的配对信号的活性大小。边的颜色代表作为配体细胞的其他细胞类型，方向代表配对信号的信息传递方向，粗细代表配对信号的活性大小。（配体）节点的大小代表该节点参与的所有配对信号活性的总和。
+The ligand-receptor pairs activity plot showcases the activity levels of the signaling pairs between Receiver cells and other cell types in the microenvironment. The color of the edges represents the other cell types acting as the Sender cells, while the direction indicates the direction of signal transmission in the pairs. The thickness of the edges represents the magnitude of the activity of the signaling pairs. The size of the (ligand) nodes reflects the cumulative sum of all the activity levels of the participating pairs associated with that node.
+
 
 ```{r eval=FALSE}
 
@@ -406,9 +409,9 @@ DrawEdgeBundlingPlot(InputDir = ActivityDir, Cluster = Cluster, ColorDB = colord
 
 ```
 
-#### 调控关系分析图
+#### regulation relationship plot (Waterfall plot)
 
-调控关系分析图（Diagram of upstream and downstream regulation relationship）展示了微环境中受体细胞与其他类型细胞间排名靠前的上游配体-受体配对信号与下游靶基因的调控信号通路，其中边的颜色代表作为配体细胞的其他细胞类型，粗细代表上游配体-受体配对信号与下游靶基因的调控能力大小。
+The regulation relationship plot (Waterfall plot) illustrates the regulatory signaling pathways between highly ranked upstream ligand-receptor pairs and downstream target genes in the microenvironment. The color of the edges represents the other cell types acting as the Sender cells, while the thickness represents the regulatory capacity of the upstream ligand-receptor pairs on the downstream target genes.
 
 ```{r eval=FALSE}
 
@@ -435,9 +438,9 @@ DrawAlluviumPlot(InputDir = ImportDir, Cluster = Cluster, ColorDB = colordb,
 
 ```
 
-#### 功能富集热图
+#### function enrichment heatmap
 
-功能富集热图（function enrichment heatmap）展示了特定类型细胞的不同上游受体调控的靶基因的功能富集结果，其中虚线以上为GO数据库（生物学过程）的富集结果，以下为KEGG数据库的富集结果。横轴代表不同上游受体，纵轴代表了不同功能的基因集合，节点颜色越深说明富集越显著，节点越大代表富集到具体集合的基因比例越多。
+The function enrichment heatmap displays the functional enrichment results of target genes regulated by different upstream receptors in specific cell types. The top part of the heatmap represents the enrichment results from the Gene Ontology (GO) database (biological processes), while the bottom part represents the enrichment results from the KEGG database. The horizontal axis represents different upstream receptors, while the vertical axis represents different gene sets associated with specific functions. Darker node colors indicate more significant enrichment, and larger nodes represent a higher proportion of genes enriched in the specific gene set.
 
 ```{r eval=FALSE}
 
