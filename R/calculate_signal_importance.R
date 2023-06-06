@@ -264,7 +264,7 @@ mergeVarsImport <- function(rfModelList, label, OutputDir){
     df_LR$Ligand = stringr::str_split(df_LR$LRpair,"_",simplify = T)[,1]
     df_LR$Receptor = stringr::str_split(df_LR$LRpair,"_",simplify = T)[,2]
 
-    if(is.null(res$df_pIM)|sum(res$df_pIM$pIM,na.rm = T)==0){
+    if(is.null(rfModel$df_pIM)|sum(rfModel$df_pIM$pIM,na.rm = T)==0){
 
       pim = data.frame()
 
@@ -272,7 +272,7 @@ mergeVarsImport <- function(rfModelList, label, OutputDir){
 
       pim = data.frame(regulator = gsub("shuffle_","",rownames(res$df_pIM)))
       pim$Target = names(rfModelList)[i]
-      pim$pIM = res$df_pIM$pIM
+      pim$pIM = rfModel$df_pIM$pIM
       pim$type = pim$regulator %in% df_LR$Ligand
       pim$type[pim$type==TRUE] = 'Ligand'
       pim$type[pim$type==FALSE] = 'Receptor'
