@@ -18,7 +18,7 @@ Install the dependency R package: Seurat, SeuratWrappers, reshape2, stringr, dpl
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
 # if(!requireNamespace('remotes')){install.packages('remotes', repos = 'https://cloud.r-project.org')}
-# remotes::install_version("Seurat", version = "4.0.2")
+# remotes::install_version("Seurat", version = "4.2.0")
 # remotes::install_github('satijalab/seurat-wrappers')
 # pkgs <- c('reshape2','stringr','dplyr')
 # for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
