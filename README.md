@@ -61,7 +61,7 @@ If you have problems installing the environment manually, you can also choose to
        # Run docker image
        docker run -it stMLnetEnv:0.1 /bin/bash
 
-To learn how to use this tool, check [Tutorial of stMLnet.Rmd](https://github.com/SunXQlab/stMLnet/blob/main/Tutorial%20of%20stMLnet.Rmd). This tutorial shows the installation and application of stMLnet in the demo dataset, which can be download from [here](https://zenodo.org/record/8024150). It will take about 15 mins to run this demo (excluding environment installation) mainly depending on the parameter setting in the quantitative analysis step.
+To learn how to use this tool, check [Tutorial of stMLnet.Rmd](https://github.com/SunXQlab/stMLnet/blob/main/Tutorial%20of%20stMLnet.Rmd). This tutorial shows the installation and application of stMLnet in the demo dataset, which can be download from [here](https://www.zenodo.org/record/8024150). It will take about 15 mins to run this demo (excluding environment installation) mainly depending on the parameter setting in the quantitative analysis step.
 
 We also provide a web-based application to demonstrate the functionality and visualization of stMLnet, available at www.stmlnet.top/net.
 
