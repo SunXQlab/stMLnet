@@ -3,7 +3,7 @@
 #'
 #' @param SiganlActivity List, The sublist contains the activity of upstream signal pairs and expression of downstream target genes in specific celltype pair.
 #' @param Lable Character, Denotes which celltype pair to study.
-#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output path of the currently running job where temporary and final results will be saved.
 #' @param NCores Numercial, set the cores for the parallel process.
 #' @param AutoPara Logical, Whether to do automatic optimization parameter.
 #' @param NTrees Numercial, number of trees in random forests model, see Seurat package for more details.
@@ -270,7 +270,7 @@ mergeVarsImport <- function(rfModelList, label, OutputDir){
 
     }else{
 
-      pim = data.frame(regulator = gsub("shuffle_","",rownames(res$df_pIM)))
+      pim = data.frame(regulator = gsub("shuffle_","",rownames(rfModel$df_pIM)))
       pim$Target = names(rfModelList)[i]
       pim$pIM = rfModel$df_pIM$pIM
       pim$type = pim$regulator %in% df_LR$Ligand

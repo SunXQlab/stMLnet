@@ -48,10 +48,10 @@ Install the dependency R package of visualization: plotrix, clusterProfiler, ggp
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
-# pkgs <- c('ggplot2','ggsci',
-#           'clusterProfiler','org.Hs.eg.db',
-#           'plotrix','ggalluvial','ggraph','igraph')
+# pkgs <- c('ggplot2','ggsci', 'plotrix','ggalluvial','ggraph','igraph')
 # for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
+# pkgs <- c('clusterProfiler','org.Hs.eg.db')
+# for (pkg in pkgs) {BiocManager::install(pkg)}
 
 pkgs <- c('ggplot2','ggsci','clusterProfiler','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
 for (pkg in pkgs) {
@@ -64,7 +64,7 @@ Install stMLnet
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
-# install.packages("F:/finalVersion/Rpackage/stMLnet_0.1.0.tar.gz", repos = NULL, type = "source")
+# install.packages("path/to/stMLnet/stMLnet_0.1.1.tar.gz", repos = NULL, type = "source")
 
 if (!requireNamespace('stMLnet')) { cat('please install and library the package: stMLnet','\n') }
 
@@ -85,10 +85,11 @@ for (pkg in pkgs) { library(pkg, character.only = T) }
 
 Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
 
+To obtain demo database and demo inputs, please download from [here](https://zenodo.org/record/8024150).
+
 ```{r echo=TRUE}
 
-inputDir <- paste0(getwd(),"/data/")
-load(paste0(inputDir,'ex_databases.rda'))
+load('/path/to/data/ex_database.rda')
 str(ex_databases,max.level=2)
 
 ```
@@ -105,12 +106,10 @@ The `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` can be automatically co
 
 ```{r echo=TRUE}
 
-load(paste0(inputDir,'ex_inputs.rda'))
+load('/path/to/data/ex_inputs.rda')
 str(ex_inputs,max.level=2)
 
 ```
-
-The demo data is derived from the breast cancer dataset of 10X Visiumd, which can be found at [here](https://support.10xgenomics.com/spatial-gene-expression/datasets/1.1.0/V1_Breast_Cancer_Block_A_Section_1). We analyzed this spatial transcriptomic data using Seurat (Version 4.0.2) and performed deconvolution using the RCTD method (more details on [stMLnet-AnalysisCode](https://github.com/SunXQlab/stMLnet-AnalysisCode/tree/main) repository).
 
 ### create mulityayer network
 
@@ -120,20 +119,19 @@ Analyze the mulityayer signaling network between different cell pairs in the bre
 
 outputDir <- getwd()
 resMLnet <- runMLnet(ExprMat = ex_inputs$exprMat, AnnoMat = ex_inputs$annoMat,
-                     LigClus = NULL, RecClus = NULL, Normalize = F, NormMethod = "LogNormalize",
-                     logfc.ct = 0.1, pct.ct = 0.05, pval.ct = 0.05, expr.ct = 0.1,
+                     LigClus = NULL, RecClus = 'Macrophage', Normalize = F, 
                      OutputDir = outputDir, Databases = NULL,
                      TGList=ex_inputs$tgs_of_inter, LigList=ex_inputs$ligs_of_inter, RecList=ex_inputs$recs_of_inter)
 
 ```
 
-The results mainly include the multilayer signaling network between receiver cells and other cell types, as well as specific statistical information. Taking Malignant cells as an example, `resMLnet$mlnets$Malignant` includes the multilayer signaling network between Malignant cells (as the receiver cells) and all other cell types (as the Sender cells). `resMLnet$details$Malignant` contains the statistical information of the aforementioned multiple multilayer signaling networks.
+The results mainly include the multilayer signaling network between receiver cells and other cell types, as well as specific statistical information. Taking Malignant cells as an example, `resMLnet$mlnets$Macrophage` includes the multilayer signaling network between Macrophage (as the receiver cells) and all other cell types (as the Sender cells). `resMLnet$details$Macrophage` contains the statistical information of the aforementioned multiple multilayer signaling networks.
 
 
 ```{r echo=TRUE}
 
-str(resMLnet$mlnets$Malignant, max.level = 2)
-resMLnet$details$Malignant[,1:3]
+str(resMLnet$mlnets$Macrophage, max.level = 2)
+resMLnet$details$Macrophage[,1:3]
 
 ```
 
@@ -210,12 +208,12 @@ for (cluster in clusters) {
 
 ```
 
-The results primarily include the calculation of upstream pair-wise signaling activity (ligand-receptor) and downstream target gene expression levels based on the multilayer signaling network for different cell type pairs. Taking Malignant cells as an example, `resSigActList$Malignant$Endothelial_Malignant` stores the upstream pair-wise signaling activity and downstream target gene expression levels between endothelial cells (as the Sender cells) and Malignant cells (as the Receiver cells). In this, `LRs_score` represents the matrix of upstream pair-wise signaling activity, with receiver cells as rows and upstream signaling pairs as columns, recording the specific activities of downstream target genes corresponding to the upstream pair-wise signaling on different receptor cells. `TGs_expr` represents the vector of downstream target gene expression levels, recording the specific expression levels of target genes on different receptor cells. The correspondence between upstream pair-wise signaling and downstream target genes is derived from the multilayer signaling network calculated in the previous step.
+The results primarily include the calculation of upstream pair-wise signaling activity (ligand-receptor) and downstream target gene expression levels based on the multilayer signaling network for different cell type pairs. Taking Macrophage cells as an example, `resSigActList$Macrophage$Malignant-Macrophage` stores the upstream pair-wise signaling activity and downstream target gene expression levels between endothelial cells (as the Sender cells) and Macrophage cells (as the Receiver cells). In this, `LRs_score` represents the matrix of upstream pair-wise signaling activity, with receiver cells as rows and upstream signaling pairs as columns, recording the specific activities of downstream target genes corresponding to the upstream pair-wise signaling on different receptor cells. `TGs_expr` represents the vector of downstream target gene expression levels, recording the specific expression levels of target genes on different receptor cells. The correspondence between upstream pair-wise signaling and downstream target genes is derived from the multilayer signaling network calculated in the previous step.
 
 ```{r echo=TRUE}
 
-resSigActList$Malignant$Endothelial_Malignant$LRs_score$ABHD2[1:4,1:4]
-resSigActList$Malignant$Endothelial_Malignant$TGs_expr$ABHD2[1:4]
+resSigActList$Macrophage$`Malignant-Macrophage`$LRs_score$COL1A2[1:4,1:4]
+resSigActList$Macrophage$`Malignant-Macrophage`$TGs_expr$COL1A2[1:4]
 
 ```
 
@@ -227,24 +225,24 @@ Load the input and output of the regulatory quantitation analysis model.
 
 ActivityDir <- paste0(outputDir,'/runModel/')
 files <- list.files(ActivityDir)
-files[1:4]
+files[1:3]
 
 ```
 
-Quantitatively analyze the upstream and downstream regulatory relationships in the multilayer signaling network of different cell type pairs. Note that the random model by default uses cross-validation and random search for automatic parameter tuning (which takes approximately 2 hours in demo dataset). Setting `AutoPara = FALSE` and other corresponding parameters (`NTrys`, `TreeMethod`, `NodeSize`, etc.) can disable automatic parameter tuning and save running time.
+Quantitatively analyze the upstream and downstream regulatory relationships in the multilayer signaling network of different cell type pairs. Note that the model by default uses cross-validation and random search for automatic parameter tuning (which takes approximately 10 mins on this demo dataset, or about 2 hours if the parameters `LigClus` and `RecClus` are set as `NULL`). Setting `AutoPara = FALSE` and other corresponding parameters (`NTrys`, `TreeMethod`, `NodeSize`, etc.) can disable automatic parameter tuning and save running time.
 
 ```{r eval=FALSE}
 
 time_ls <- c()
 for(f in files){
   
-  label <- paste(unlist(strsplit(f,'[_.]'))[3:4],collapse = '-')
+  label <- gsub('LRTG_allscore_|[.]rds','',f)
   LRTG_allscore <- readRDS(paste0(ActivityDir,f))
   message(paste0('running jobs: ',label))
     
   t1 <- Sys.time()
   getSiganlImport(
-    SiganlActivity = LRTG_allscore, Lable = label, OutputDir = outputDir,
+    SiganlActivity = LRTG_allscore, Lable = label, OutputDir = outputDir, 
     NCores = 6, AutoPara = TRUE, NTrees = 500, NTrys = 10,
     TreeMethod = 'variance', NodeSize = 5,  NPert = 10)
   t2 <- Sys.time()
@@ -260,27 +258,28 @@ The results primarily include the quantified regulatory relationships between up
 
 ImportDir <- paste0(outputDir,'/getPIM/')
 files <- list.files(ImportDir)
-head(files,2)
-tail(files,2)
+head(files)
+tail(files)
 
 ```
 
-Taking the interaction between T cells and Malignant cells as an example, `LRTG_im_clean_Tcell-Malignant` stores the regulatory relationship between the upstream pair-wise signal LRpair (ligand-receptor) and downstream target genes Target, with T cells as the Sender cells and Malignant cells as the Receiver cells. In this context, `IM` represents the feature importance scores obtained from the quantitative analysis model, and `im_norm` represents the normalized importance scores.
+Taking the interaction between T cells and Malignant cells as an example, `LRTG_im_clean_Malignant-Macrophage` stores the regulatory relationship between the upstream pair-wise signal LRpair (ligand-receptor) and downstream target genes Target, with Malignant cells as the Sender cells and Macrophage as the Receiver cells. In this context, `IM` represents the feature importance scores obtained from the quantitative analysis model, and `im_norm` represents the normalized importance scores.
 
 
 ```{r echo=TRUE}
 
-f <- files[grepl('Tcell-Malignant',files) & grepl('_im_',files)]
+f <- files[grepl('Malignant-Macrophage',files) & grepl('_im_',files)]
 LRTG_im <- readRDS(paste0(ImportDir,f))
 rownames(LRTG_im) <- NULL
 head(LRTG_im)
 
 ```
-`LRTG_pim_clean_Tcell-Malignant` stores the regulatory relationship between the upstream signal Regulator (ligand or receptor) and downstream target genes Target, with T cells as the Sender cells and Malignant cells as the Receiver cells. In this case, `pIM` represents the adjusted feature importance scores obtained from the quantitative analysis model, and `type` indicates the actual signal type of the upstream signal.
+
+`LRTG_pim_clean_Malignant-Macrophage` stores the regulatory relationship between the upstream signal Regulator (ligand or receptor) and downstream target genes Target, with Malignant cells as the Sender cells and Macrophage as the Receiver cells. In this case, `pIM` represents the adjusted feature importance scores obtained from the quantitative analysis model, and `type` indicates the actual signal type of the upstream signal.
 
 ```{r echo=TRUE}
 
-f <- files[grepl('Tcell-Malignant',files) & grepl('_pim_',files)]
+f <- files[grepl('Malignant-Macrophage',files) & grepl('_pim_',files)]
 LRTG_pim <- readRDS(paste0(ImportDir,f))
 rownames(LRTG_pim) <- NULL
 head(LRTG_pim)
@@ -295,8 +294,15 @@ You can call the main function (with default parameters) to complete the three s
 
 outputDir <- getwd()
 
+data(ex_databases)
+data(ex_inputs)
+
+DistMat <- as.matrix(dist(ex_inputs$locaMat))
+colnames(DistMat) <- colnames(ex_inputs$exprMat)
+rownames(DistMat) <- colnames(ex_inputs$exprMat)
+
 resList <- runstMLnet(ExprMat = ex_inputs$exprMat, AnnoMat = ex_inputs$annoMat,
-                      DistMat, LigClus = NULL, RecClus = NULL,
+                      DistMat, LigClus = NULL, RecClus = 'Macrophage',
                       Normalize = F, 
                       OutputDir = outputDir,
                       TGList=ex_inputs$tgs_of_inter, 
@@ -339,42 +345,33 @@ The NetworkPlot of cell-communication visualizes the interaction strength betwee
 
 ```{r eval=FALSE}
 
-Metrics <- c('n_LRs','n_TGs','IM','IM_norm','mean_IM','mean_IM_norm')
+# Metrics <- c('n_LRs','n_TGs','IM','IM_norm','mean_IM','mean_IM_norm')
 ColorDB <- myColor$Celltypes
-lapply(Metrics, function(Metric){
-  DrawNetworkPlot(InputDir = ImportDir, Metric = Metric, ColorDB = ColorDB, gtitle = Metric)
-})
-
-```
-
-```{r echo=TRUE}
-
-Metric <- 'IM'
-ColorDB <- myColor$Celltypes
+Metric <- 'n_LRs'
 DrawNetworkPlot(InputDir = ImportDir, Metric = Metric, ColorDB = ColorDB, gtitle = Metric)
 
 ```
 
 #### Multilayer signaling network (MLnetPlot)
 
-The multilayer signaling network displays the multilayer signaling network for a specific cell type regulated by specified ligands/receptors. The downstream target genes are filtered and displayed based on their importance scores. The colors represent different types of signals (ligands, receptors, transcription factors, target genes) within the multilayer signaling network, and the edges represent the interactions between signaling molecules. Taking the interaction between T cells and Malignant cells as an example, the graph illustrates the regulatory signaling network of the internally targeted genes in Malignant cells by T cell-secreted SEMA4D and TGFB1.
+The multilayer signaling network displays the multilayer signaling network for a specific cell type regulated by specified ligands/receptors. The downstream target genes are filtered and displayed based on their importance scores. The colors represent different types of signals (ligands, receptors, transcription factors, target genes) within the multilayer signaling network, and the edges represent the interactions between signaling molecules. Taking the interaction between Malignant cells and Macrophage as an example, the graph illustrates the regulatory signaling network of the internally targeted genes in Macrophage by Malignant cell-secreted COL9A2 and CCL5.
 
 
 ```{r echo=TRUE, fig.height=4.5, fig.width=7}
 
-DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Tcell_Malignant/scMLnet.rds'), 
-              ImportDir = paste0(ImportDir,'LRTG_im_clean_Tcell-Malignant.rds'), 
-              Signal = 'SEMA4D', Check = TRUE, top.n = 10, ColorDB = myColor$Keys,
-              gtitle = 'SEMA4D',  p_height = 4.5, p_width = 7)
+DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Malignant-Macrophage/scMLnet.rds'), 
+              ImportDir = paste0(ImportDir,'LRTG_im_clean_Malignant-Macrophage.rds'), 
+              Signal = 'COL9A2', Check = TRUE, top.n = 10, ColorDB = myColor$Keys,
+              gtitle = 'COL9A2',  p_height = 4.5, p_width = 7)
 
 ```
 
 ```{r echo=TRUE, fig.height=4.5, fig.width=7}
 
-DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Tcell_Malignant/scMLnet.rds'), 
-              ImportDir = paste0(ImportDir,'LRTG_im_clean_Tcell-Malignant.rds'), 
-              Signal = 'TGFB1', Check = TRUE, top.n = 10, ColorDB = myColor$Keys,
-              gtitle = 'TGFB1',  p_height = 4.5, p_width = 7)
+DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Malignant-Macrophage/scMLnet.rds'), 
+              ImportDir = paste0(ImportDir,'LRTG_im_clean_Malignant-Macrophage.rds'), 
+              Signal = 'CCL5', Check = TRUE, top.n = 10, ColorDB = myColor$Keys,
+              gtitle = 'CCL5',  p_height = 4.5, p_width = 7)
 
 ```
 
@@ -383,26 +380,11 @@ DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Tcell_Malignant/scMLnet.rds'),
 
 The ligand-receptor pairs activity plot showcases the activity levels of the signaling pairs between Receiver cells and other cell types in the microenvironment. The color of the edges represents the other cell types acting as the Sender cells, while the direction indicates the direction of signal transmission in the pairs. The thickness of the edges represents the magnitude of the activity of the signaling pairs. The size of the (ligand) nodes reflects the cumulative sum of all the activity levels of the participating pairs associated with that node.
 
-
-```{r eval=FALSE}
-
-colordb <- unlist(myColor)
-names(colordb) <- gsub('.*\\.','',names(colordb))
-for (Cluster in celltype) {
-
-  gtitle <- paste0('sender_',Cluster)
-  DrawEdgeBundlingPlot(InputDir = ActivityDir, Cluster = Cluster, ColorDB = colordb,
-                       Check = TRUE, top.n = 50, gtitle = gtitle, p_height = 7.5, p_width = 7)
-
-}
-
-```
-
 ```{r echo=TRUE, fig.height=7.5, fig.width=7}
 
 colordb <- unlist(myColor)
 names(colordb) <- gsub('.*\\.','',names(colordb))
-Cluster <- 'Malignant'
+Cluster <- 'Macrophage'
 gtitle <- paste0('sender_',Cluster)
 DrawEdgeBundlingPlot(InputDir = ActivityDir, Cluster = Cluster, ColorDB = colordb,
                      Check = TRUE, top.n = 50, gtitle = gtitle, p_height = 7.5, p_width = 7)
@@ -417,21 +399,7 @@ The regulation relationship plot (Waterfall plot) illustrates the regulatory sig
 
 colordb <- unlist(myColor)
 names(colordb) <- gsub('.*\\.','',names(colordb))
-for (Cluster in celltype) {
-
-  gtitle <- paste0('sender_',Cluster)
-  DrawAlluviumPlot(InputDir = ImportDir, Cluster = Cluster, ColorDB = colordb,
-                   Check = TRUE, top.n = 30, gtitle = gtitle, p_height = 7.5, p_width = 7)
-
-}
-
-```
-
-```{r echo=TRUE, fig.height=7.5, fig.width=7}
-
-colordb <- unlist(myColor)
-names(colordb) <- gsub('.*\\.','',names(colordb))
-Cluster <- 'Malignant'
+Cluster <- 'Macrophage'
 gtitle <- paste0('sender_',Cluster)
 DrawAlluviumPlot(InputDir = ImportDir, Cluster = Cluster, ColorDB = colordb,
                  Check = TRUE, top.n = 30, gtitle = gtitle, p_height = 7.5, p_width = 7)
@@ -442,26 +410,10 @@ DrawAlluviumPlot(InputDir = ImportDir, Cluster = Cluster, ColorDB = colordb,
 
 The function enrichment heatmap displays the functional enrichment results of target genes regulated by different upstream receptors in specific cell types. The top part of the heatmap represents the enrichment results from the Gene Ontology (GO) database (biological processes), while the bottom part represents the enrichment results from the KEGG database. The horizontal axis represents different upstream receptors, while the vertical axis represents different gene sets associated with specific functions. Darker node colors indicate more significant enrichment, and larger nodes represent a higher proportion of genes enriched in the specific gene set.
 
-```{r eval=FALSE}
-
-for (Cluster in celltype) {
-
-  print(Cluster)
-  gtitle <- paste0('sender_',Cluster)
-  tryCatch({
-    DrawEnrichmentPlot(InputDir = MLnetDir, Cluster = Cluster, top.n = 3, gtitle = gtitle, p_height = 11.5, p_width = 10.5)
-  }, error = function(e){
-    message(paste0('Error in ',gtitle))
-  })
-
-}
-
-```
-
 ```{r echo=TRUE, fig.height=8, fig.width=15}
 
-Cluster <- 'Malignant'
-gtitle <- paste0('sender_',Cluster)
+Cluster <- 'Macrophage'
+gtitle <- paste0('sender-',Cluster)
 DrawEnrichmentPlot(InputDir = MLnetDir, Cluster = Cluster, top.n = 3, gtitle = gtitle, p_height = 11.5, p_width = 10.5)
 
 ```

@@ -11,7 +11,8 @@
 #' @param pct.ct Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.
 #' @param pval.ct Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.
 #' @param expr.ct Numercial, Screening threshold for high expressed gene in groups of cells. Default is 0.05.
-#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output path of the currently running job where temporary and final results will be saved.
+#' @param SigMethod Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF, TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).
 #' @param Databases List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).
 #' @param TGList List, The target genes of interest in groups of cells (RecClus).
 #' @param LigList List, The potential ligands in groups of cells (LigClus).
@@ -24,8 +25,8 @@
 #' @importFrom stats quantile
 #'
 runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
-                     Normalize = T, NormMethod = 'LogNormalze', 
-                     OutputDir = NULL, Databases = NULL,
+                     Normalize = T, NormMethod = 'LogNormalze',
+                     OutputDir = NULL, Databases = NULL, SigMethod = 'Fisher',
                      logfc.ct = 0.1, pct.ct = 0.05, pval.ct = 0.05, expr.ct = 0.1,
                      TGList=NULL, LigList=NULL, RecList=NULL){
 
@@ -34,6 +35,7 @@ runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
   if(is.null(Databases)){
 
     cat("load default database\n")
+    data(ex_databases)
     quan.cutoff <- 0.98
     Databases <- ex_databases
     Databases$RecTF.DB <- Databases$RecTF.DB %>%
@@ -89,7 +91,8 @@ runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
         logfc.ct = logfc.ct,
         pct.ct = pct.ct,
         pval.ct = pval.ct,
-        expr.ct = expr.ct
+        expr.ct = expr.ct,
+        SigMethod = SigMethod
       ),
       data = list(
         df_data = ExprMat,
@@ -198,12 +201,12 @@ runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
 
 
     }
-    names(mlnets) <- paste(LigClus,RecClu,sep = "_")
-    colnames(details) <- paste(LigClus,RecClu,sep = "_")
+    names(mlnets) <- paste(LigClus,RecClu,sep = "-")
+    colnames(details) <- paste(LigClus,RecClu,sep = "-")
     rownames(details) <- c('Lig_bk','Rec_bk','target_bk',
                           "LRpair","RecTFpair","TFTGpair",
                           "Ligand", "Receptor", "TF", "Target")
-    write.csv(details, file = paste0(WorkDir,"/TME_",RecClu,".csv"))
+    write.csv(details, file = paste0(WorkDir,"/TME-",RecClu,".csv"))
 
     outputs$mlnets[[RecClu]] <- mlnets
     outputs$details[[RecClu]] <- details
@@ -265,7 +268,7 @@ runNormalize <- function(inputs, method = c("LogNormalze",'SCTransform'))
 #' @import Seurat dplyr
 #'
 getDiffExpGene <- function(inputs)
-{ 
+{
 
   ## parameters
 
@@ -393,6 +396,7 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
   ls_receptors <- inputs$data$ls_receptors
   ls_targets <- inputs$data$ls_targets
   workdir <- inputs$parameters$WorkDir
+  sigMethod <- inputs$parameters$SigMethod
 
   ## database
 
@@ -424,7 +428,7 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
   }
   cat("target_interest:",length(target_interest),"\n")
   tryCatch({
-    TFTGTab <- getTFTG(TFTG.DB, target_interest, target_background)
+    TFTGTab <- getTFTG(TFTG.DB, target_interest, target_background, sigMethod)
   },error = function(e){
     cat(conditionMessage(e),"\n")
   })
@@ -438,7 +442,7 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
     TF.list <- getNodeList(TFTGTab, "source")
     target.tfs <- TF.list
     tryCatch({
-      RecTFTab <- getRecTF(RecTF.DB, Rec.list, TF.list)
+      RecTFTab <- getRecTF(RecTF.DB, Rec.list, TF.list, sigMethod)
     },error=function(e){
       cat(conditionMessage(e),"\n")
     })
@@ -487,7 +491,7 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
 
   ## save
 
-  cellpair = paste(ligclu,recclu,sep = "_")
+  cellpair = paste(ligclu,recclu,sep = "-")
   workdir = paste(workdir,cellpair,sep = "/")
   dir.create(workdir,recursive = TRUE,showWarnings = F)
   saveRDS(mlnet, file = paste0(workdir,"/scMLnet.rds"))
@@ -593,14 +597,57 @@ getLigRec <- function(LigRec.DB, source_up, target_up)
 
 }
 
-getTFTG <- function(TFTG.DB, target.degs, target.genes)
+getTFTG <- function(TFTG.DB, target.degs, target.genes, method = c('Fisher','Search'))
 {
 
-  ## library
+  if(method=='Search'){
+    TFTGTable <- getTFTGSearch(TFTG.DB, target.degs)
+  }else if(method=='Fisher'){
+    TFTGTable <- getTFTGFisher(TFTG.DB, target.degs, target.genes)
+  }
 
-  # loadNamespace('dplyr')
+  return(TFTGTable)
+}
 
-  ## main
+getTFTGSearch <- function(TFTG.DB, target.degs)
+{
+
+  require(dplyr)
+
+  if (!is.data.frame(TFTG.DB))
+    stop("TFTG.DB must be a data frame or tibble object")
+  if (!"source" %in% colnames(TFTG.DB))
+    stop("TFTG.DB must contain a column named 'source'")
+  if (!"target" %in% colnames(TFTG.DB))
+    stop("TFTG.DB must contain a column named 'target'")
+
+  # get TF and Target list
+  TFGene <- TFTG.DB %>% dplyr::select(source) %>% unlist() %>% unique()
+  TargetGene <- TFTG.DB %>% dplyr::select(target) %>% unlist() %>% unique()
+  TotTFTG <- paste(TFTG.DB$source, TFTG.DB$target, sep = "_") %>% unique()
+
+  # get activated target
+  TargetHighGene <- intersect(TargetGene,target.degs)
+
+  # get potential activated TFTG pairs
+  TFTGList <- paste(TFGene, TargetHighGene,sep = "_")
+  TFTGList <- intersect(TFTGList,TotTFTG)
+
+  # check result
+  if(length(TFTGList)==0)
+    stop("Error: No significant TFTG pairs")
+
+  # get result
+  TFTGTable <- TFTGList %>% strsplit(.,split = "_") %>% do.call(rbind, .) %>% as.data.frame()
+  colnames(TFTGTable) <- c("source","target")
+
+  cat(paste0("get ",length(TFTGList)," activated TFTG pairs\n"))
+  return(TFTGTable)
+
+}
+
+getTFTGFisher <- function(TFTG.DB, target.degs, target.genes)
+{
 
   if (!is.data.frame(TFTG.DB))
     stop("TFTG.DB must be a data frame or tibble object")
@@ -645,14 +692,20 @@ getTFTG <- function(TFTG.DB, target.degs, target.genes)
 
 }
 
-getRecTF <- function(RecTF.DB, Rec.list, TF.list)
+getRecTF <- function(RecTF.DB, Rec.list, TF.list, method = c('Fisher','Search'))
 {
 
-  ## library
+  if(method=='Search'){
+    RecTFTable <- getRecTFSearch(RecTF.DB, Rec.list, TF.list)
+  }else if(method=='Fisher'){
+    RecTFTable <- getRecTFFisher(RecTF.DB, Rec.list, TF.list)
+  }
 
-  # loadNamespace('dplyr')
+  return(RecTFTable)
+}
 
-  ## main
+getRecTFFisher <- function(RecTF.DB, Rec.list, TF.list)
+{
 
   if (!is.data.frame(RecTF.DB))
     stop("RecTF.DB must be a data frame or tibble object")
@@ -701,5 +754,42 @@ getRecTF <- function(RecTF.DB, Rec.list, TF.list)
 
   cat(paste0("get ",length(RecTFList)," activated RecTF pairs\n"))
   return(RecTFTable)
+  # return(Recs)
+}
 
+getRecTFSearch <- function(RecTF.DB, Rec.list, TF.list)
+{
+
+  if (!is.data.frame(RecTF.DB))
+    stop("RecTF.DB must be a data frame or tibble object")
+  if (!"source" %in% colnames(RecTF.DB))
+    stop("RecTF.DB must contain a column named 'source'")
+  if (!"target" %in% colnames(RecTF.DB))
+    stop("RecTF.DB must contain a column named 'target'")
+
+  # make sure Rec.list in RecTF.DB
+  Rec.list <- Rec.list[Rec.list %in% RecTF.DB$source]
+  Rec.list <- as.vector(Rec.list)
+
+  # make sure TF.list in RecTF.DB
+  TF.list <- TF.list[TF.list %in% RecTF.DB$target]
+  TF.list <- as.vector(TF.list)
+
+  # RecTF pairs in RecTF.DB
+  TotRecTF <- paste(RecTF.DB$source, RecTF.DB$target, sep = "_") %>% unique()
+
+  # get activated LR pairs
+  RecTFList <- paste(rep(Rec.list,each = length(TF.list)),TF.list,sep = "_")
+  RecTFList <- intersect(RecTFList,TotRecTF)
+
+  # check result
+  if(length(RecTFList)==0)
+    stop("Error: No significant RecTF pairs")
+
+  # get result
+  RecTFTable <- RecTFList %>% strsplit(.,split = "_") %>% do.call(rbind, .) %>% as.data.frame()
+  colnames(RecTFTable) <- c("source","target")
+
+  cat(paste0("get ",length(RecTFList)," activated RecTF pairs\n"))
+  return(RecTFTable)
 }

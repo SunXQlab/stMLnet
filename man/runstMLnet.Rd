@@ -18,6 +18,7 @@ runstMLnet(
   expr.ct = 0.1,
   OutputDir = NULL,
   Databases = NULL,
+  SigMethod = "Fisher",
   TGList = NULL,
   LigList = NULL,
   RecList = NULL,
@@ -53,9 +54,11 @@ runstMLnet(
 
 \item{expr.ct}{Numercial, Screening threshold for high expressed gene in groups of cells. Default is 0.05.}
 
-\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
+\item{OutputDir}{Character, The output path of the currently running job where temporary and final results will be saved.}
 
 \item{Databases}{List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).}
+
+\item{SigMethod}{Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF, TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
 
 \item{TGList}{List, The target genes of interest in groups of cells (RecClus).}
 

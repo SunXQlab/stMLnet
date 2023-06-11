@@ -11,8 +11,9 @@
 #' @param pct.ct Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.
 #' @param pval.ct Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.05.
 #' @param expr.ct Numercial, Screening threshold for high expressed gene in groups of cells. Default is 0.05.
-#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output path of the currently running job where temporary and final results will be saved.
 #' @param Databases List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).
+#' @param SigMethod Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF, TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).
 #' @param TGList List, The target genes of interest in groups of cells (RecClus).
 #' @param LigList List, The potential ligands in groups of cells (LigClus).
 #' @param RecList List, The potential receptors in groups of cells (RecClus).
@@ -31,7 +32,8 @@ runstMLnet <- function(
     ExprMat, AnnoMat, DistMat, LigClus = NULL, RecClus = NULL,
     Normalize = F, NormMethod = 'LogNormalze',
     logfc.ct = 0.1, pct.ct = 0.05, pval.ct = 0.05, expr.ct = 0.1,
-    OutputDir = NULL, Databases = NULL, TGList = NULL, LigList = NULL, RecList = NULL,
+    OutputDir = NULL, Databases = NULL, SigMethod = 'Fisher',
+    TGList = NULL, LigList = NULL, RecList = NULL,
     NCores = 6, AutoPara = TRUE, NTrees = 500, NTrys = 10,
     TreeMethod = 'variance', NodeSize = 5,  NPert = 10
 ){
@@ -48,7 +50,7 @@ runstMLnet <- function(
 
   }else{
 
-    OutputDir <- paste0(getwd(),OutputDir,'/')
+    OutputDir <- OutputDir
 
   }
 
@@ -56,7 +58,7 @@ runstMLnet <- function(
 
   resMLnet <- runMLnet(ExprMat, AnnoMat, LigClus = LigClus, RecClus = RecClus,
                        Normalize = Normalize, NormMethod = NormMethod,
-                       OutputDir = OutputDir, Databases = Databases,
+                       OutputDir = OutputDir, Databases = Databases, SigMethod = SigMethod,
                        logfc.ct = logfc.ct, pct.ct = pct.ct, pval.ct = pval.ct, expr.ct = expr.ct,
                        TGList=TGList, LigList=LigList, RecList=RecList)
 

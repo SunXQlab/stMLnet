@@ -27,7 +27,7 @@ getSiganlActivity(
 
 \item{Sender}{Vector, cell types that receiving signals.}
 
-\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
+\item{OutputDir}{Character, The output path of the currently running job where temporary and final results will be saved.}
 }
 \value{
 List, The sublist contains the activity of upstream signal pairs and expression of downstream target genes in specific celltype pair.

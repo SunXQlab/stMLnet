@@ -7,7 +7,7 @@
 #' @param MulNetList List, The sublist is the multilayer signal network between of specific celltype pair.
 #' @param Receiver Character, cell type that sending signals.
 #' @param Sender Vector, cell types that receiving signals.
-#' @param OutputDir Character, The output directory of running jobs for now. Generate a working directory to save the final result.
+#' @param OutputDir Character, The output path of the currently running job where temporary and final results will be saved.
 #'
 #' @return List, The sublist contains the activity of upstream signal pairs and expression of downstream target genes in specific celltype pair.
 #' @export
@@ -25,7 +25,7 @@ getSiganlActivity <- function(ExprMat, DistMat, AnnoMat, MulNetList,
 
   ## main
 
-  MulNetList <- MulNetList[grep(paste0("_",Receiver),names(MulNetList))]
+  MulNetList <- MulNetList[grep(paste0("-",Receiver),names(MulNetList))]
   cellpair <- names(MulNetList)
 
   signalActivity <- list()
@@ -50,19 +50,19 @@ getSiganlActivity <- function(ExprMat, DistMat, AnnoMat, MulNetList,
     TGs <- names(LRpairs)
 
     cat(paste0("calculate the regulatory score of LR pairs from microenvironment to ",Receiver,'\n'))
-    cp = paste('TME',Receiver,sep = "_")
+    cp = paste('TME',Receiver,sep = "-")
     signalActivity[[cp]] <- getCPSiganlActivity(ExprMat, DistMat, AnnoMat,
                                                 LRpairs, TGs, Receiver, Sender)
 
   }else{
 
-    cellpair <- intersect(cellpair,paste(Sender,Receiver,sep = "_"))
+    cellpair <- intersect(cellpair,paste(Sender,Receiver,sep = "-"))
     if(length(cellpair)==0) return(signalActivity)
 
     for (cp in cellpair) {
 
-      receiver <- gsub('.*_','',cp)
-      sender <- gsub('_.*','',cp)
+      receiver <- gsub('.*-','',cp)
+      sender <- gsub('-.*','',cp)
 
       MulNet <- MulNetList[[cp]]
       LRpairs <- getSiganlLinks(MulNet)
@@ -110,7 +110,7 @@ getSiganlActivity <- function(ExprMat, DistMat, AnnoMat, MulNetList,
 getCPSiganlActivity <- function(exprMat, distMat, annoMat,
                                 LRpairs, TGs, receiver, sender = NULL)
 {
-  
+
   ## obtain cell ID
   receBars = annoMat %>% dplyr::filter(Cluster == receiver) %>%
     dplyr::select(Barcode) %>% unlist() %>% as.character()
@@ -226,7 +226,7 @@ getSiganlLinks <- function(mulNet)
 #' @importFrom SeuratWrappers RunALRA
 runImputation <- function(exprMat, use.seed = TRUE, seed = 4321)
 {
-  
+
   ## main
 
   expr.Impute <- CreateSeuratObject(exprMat,verbose=F)

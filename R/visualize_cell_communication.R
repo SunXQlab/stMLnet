@@ -438,7 +438,7 @@ DrawEdgeBundlingPlot <- function(
   dir.create(outputdir,recursive=T,showWarnings = F)
 
   files <-  list.files(inputdir)
-  files <- files[grep(paste0('_',cluster,'.rds'),files)]
+  files <- files[grep(paste0('-',cluster,'.rds'),files)]
   LRTGscore = lapply(files, function(file){
 
     print(file)
@@ -452,8 +452,8 @@ DrawEdgeBundlingPlot <- function(
       target = colnames(LRS_score_merge) %>% gsub('.*_','',.),
       LRpair = colnames(LRS_score_merge),
       count = colMeans(LRS_score_merge),
-      source_group = strsplit(file,'[_\\.]')[[1]][3],
-      target_group = strsplit(file,'[_\\.]')[[1]][4]
+      source_group = strsplit(file,'[_//.]')[[1]][3],
+      target_group = strsplit(file,'[_//.]')[[1]][4]
     )
 
   }) %>% do.call('rbind',.)
@@ -483,7 +483,7 @@ prepareEdgeBundlingPlotData <- function(LRTGscore, do.check = TRUE, top.n = 50){
   # edge
   LRTGscore$from = paste(LRTGscore$source,LRTGscore$source_group,sep = "_")
   LRTGscore$to = paste(LRTGscore$target,LRTGscore$target_group,sep = "_")
-  df_edge <- LRTGscore[,c('from','to')]
+  df_edge <- LRTGscore[,grep("from|to",colnames(LRTGscore))]
 
   # hierarchy
   d1 <- data.frame(from="cell", to=c('Sender','Receiver'))
@@ -768,7 +768,7 @@ DrawEnrichmentPlot <- function(InputDir, Cluster, top.n = 3, gtitle = 'Enrichmen
   ## input
 
   files <- list.files(inputdir)
-  files <- files[grep(paste0('_',cluster,'$'),files)]
+  files <- files[grep(paste0('-',cluster,'$'),files)]
   mulNetDF = lapply(files, function(f){
 
     mlnet <- readRDS(paste0(inputdir,f,"/scMLnet.rds"))
@@ -785,7 +785,8 @@ DrawEnrichmentPlot <- function(InputDir, Cluster, top.n = 3, gtitle = 'Enrichmen
 
   }) %>% do.call('rbind',.)
   mulNetDF = stats::na.omit(mulNetDF)
-  mulNetList = split(mulNetDF,mulNetDF$Receptor)
+  mulNetList = lapply(unique(mulNetDF$Target), function(tg){ mulNetDF[mulNetDF$Target==tg,] })
+  names(mulNetList) <- unique(mulNetDF$Target)
 
   ## enrich
 

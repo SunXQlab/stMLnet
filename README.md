@@ -38,14 +38,19 @@ To install and use the stMLnet package, please make sure you have already instal
        remotes::install_github("satijalab/seurat-wrappers")
        remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
 
-After building dependent enviorment, you can download stMLnet from github:
+After building dependent environment, you can download stMLnet from github:
 
-       git lfs clone https://github.com/SunXQlab/stMLnet.git
+       git clone https://github.com/SunXQlab/stMLnet.git
        
-you can install stMLnet from local:
+and then install stMLnet from local:
  
        install.packages("path/to/stMLnet/stMLnet_0.1.1.tar.gz", repos = NULL, type = "source")
        library(stMLnet)
+       
+or you can directly install stMLnet from github:
+
+       devtools::install_github("YUZIXD/scMLnet")
+       library(scMLnet)
 
 If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
 
@@ -56,7 +61,7 @@ If you have problems installing the environment manually, you can also choose to
        # Run docker image
        docker run -it stMLnetEnv:0.1 /bin/bash
 
-To learn how to use this tool, check [Tutorial of stMLnet.Rmd](https://github.com/SunXQlab/stMLnet/blob/main/Tutorial%20of%20stMLnet.Rmd). This tutorial shows the installation and application of stMLnet in the demo dataset, which is derived from the breast cancer dataset of the 10X Visiumd website (see more details in [stMLnet-AnalysisCode](https://github.com/SunXQlab/stMLnet-AnalysisCode/tree/main) repository). The input of this tutorial can be found in the `data` folder, and it will take about 0.5~2 hours to run this demo (excluding environment installation) mainly depending on the parameter setting in the quantitative analysis step.
+To learn how to use this tool, check [Tutorial of stMLnet.Rmd](https://github.com/SunXQlab/stMLnet/blob/main/Tutorial%20of%20stMLnet.Rmd). This tutorial shows the installation and application of stMLnet in the demo dataset, which can be download from [here](https://zenodo.org/record/8024150). It will take about 15 mins to run this demo (excluding environment installation) mainly depending on the parameter setting in the quantitative analysis step.
 
 We also provide a web-based application to demonstrate the functionality and visualization of stMLnet, available at www.stmlnet.top/net.
 

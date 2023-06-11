@@ -22,7 +22,7 @@ getSiganlImport(
 
 \item{Lable}{Character, Denotes which celltype pair to study.}
 
-\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
+\item{OutputDir}{Character, The output path of the currently running job where temporary and final results will be saved.}
 
 \item{NCores}{Numercial, set the cores for the parallel process.}
 

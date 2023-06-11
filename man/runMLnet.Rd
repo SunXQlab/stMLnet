@@ -13,6 +13,7 @@ runMLnet(
   NormMethod = "LogNormalze",
   OutputDir = NULL,
   Databases = NULL,
+  SigMethod = "Fisher",
   logfc.ct = 0.1,
   pct.ct = 0.05,
   pval.ct = 0.05,
@@ -35,9 +36,11 @@ runMLnet(
 
 \item{NormMethod}{Character, Denotes which normalization method to use. Available options are: LogNormalze, SCTransform. See Seurat package for more details.}
 
-\item{OutputDir}{Character, The output directory of running jobs for now. Generate a working directory to save the final result.}
+\item{OutputDir}{Character, The output path of the currently running job where temporary and final results will be saved.}
 
 \item{Databases}{List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).}
+
+\item{SigMethod}{Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF, TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
 
 \item{logfc.ct}{Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.1.}
 
