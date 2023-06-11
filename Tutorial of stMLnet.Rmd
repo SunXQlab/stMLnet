@@ -85,7 +85,7 @@ for (pkg in pkgs) { library(pkg, character.only = T) }
 
 Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
 
-To obtain demo database and demo inputs, please download from [here](https://zenodo.org/record/8024150).
+To obtain demo database and demo inputs, please download from [here](https://www.zenodo.org/record/8024150).
 
 ```{r echo=TRUE}
 
