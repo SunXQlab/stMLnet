@@ -49,8 +49,8 @@ and then install stMLnet from local:
        
 or you can directly install stMLnet from github:
 
-       devtools::install_github("YUZIXD/scMLnet")
-       library(scMLnet)
+       devtools::install_github("SunXQlab/stMLnet")
+       library(stMLnet)
 
 If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
 
