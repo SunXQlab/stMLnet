@@ -4,7 +4,7 @@
 ![image](https://github.com/SunXQlab/stMLnet/blob/main/fig1.framework.png)<br>
 
 <p align="center">
-  <img width="600" height="200" src="https://github.com/SunXQlab/stMLnet/blob/main/fig1.framework.png">
+  <img width="200" height="600" src="https://github.com/SunXQlab/stMLnet/blob/main/fig1.framework.png">
 </p>
 `stMLnet` is a tool to infer spatial intercellular communication and multilayer signaling regulations from `spatial transcriptomic data (ST)` by quantifying distance-weighted ligand–receptor (LR) signaling activity based on diffusion and mass action models and mapping it to intracellular targets. stMLnet can infer, quifity, and visualize both intercelluar communitations and the intracelluar gene regulatory network from ST data. stMLnet allows:
 * to construct a multilayer signaling network, infer LR signling activate, and predicte LR-target gene regulation <br>
