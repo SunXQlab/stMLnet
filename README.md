@@ -1,8 +1,6 @@
 # stMLnet
 
 ## What is stMLnet?
-![image](https://github.com/SunXQlab/stMLnet/blob/main/fig1.framework.png)<br>
-
 <p align="center">
   <img src="https://github.com/SunXQlab/stMLnet/blob/main/fig1.framework.png">
 </p>
