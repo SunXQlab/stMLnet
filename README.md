@@ -2,7 +2,7 @@
 
 ## What is stMLnet?
 <div align=center>
-<img src="https://github.com/SunXQlab/stMLnet/blob/main/fig1.frameworl.png" width="105" height="180"> width="105" height="180"/>
+<img src="https://github.com/SunXQlab/stMLnet/blob/main/fig1.frameworl.png" width="105" height="180"> 
 </div>
 
 ![image](https://github.com/SunXQlab/stMLnet/blob/main/fig1.framework.png)
