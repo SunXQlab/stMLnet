@@ -1,6 +1,13 @@
-
-
-
+#' @title check_feedback_loop
+#' @description select multicellular feedback loop
+#'
+#' @param celltypes Vector, indicating the cell types in microenvironment.
+#' @param workdir Character, the path where the multilayer network is stored.
+#' @param savepath Character, the path where the result is stored.
+#' @param cts_of_interest Vector or Character, the cell type your interest.
+#'
+#' @return Table, containing the sender, receiver, and signals. The signals represent the multicellular feedback cruit between sender and receiver.
+#' @export
 check_feedback_loop <- function(celltypes, workdir, savepath, cts_of_interest){
   
   cp_of_inter <- data.frame(matrix(ncol = 4,dimnames = list(c(),c('ct1','ct2','keys_of_ct1','keys_of_ct2'))))
