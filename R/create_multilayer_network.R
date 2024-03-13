@@ -474,6 +474,40 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
                  "RecTF" = RecTFTab,
                  "TFTar" = TFTGTab_new)
 
+  ## save
+
+  cellpair = paste(ligclu,recclu,sep = "-")
+  workdir = paste(workdir,cellpair,sep = "/")
+  dir.create(workdir,recursive = TRUE,showWarnings = F)
+  saveRDS(mlnet, file = paste0(workdir,"/scMLnet.rds"))
+  #---------------------------------------------update 20230313------------------------------------
+  # calculate P_value
+  if (sigMethod == 'Fisher'){
+    if(tag1 & tag2){
+      Rec.list <- getNodeList(LigRecTab, "target")
+      TF.list <- getNodeList(TFTGTab, "source")
+      target.tfs <- TF.list
+      tryCatch({
+        RecTFpval <- getRecpval(RecTF.DB, Rec.list, TF.list, sigMethod)
+      },error=function(e){
+        cat(conditionMessage(e),"\n")
+      })
+    }
+    
+    if (length(LigRecTab)==0){
+      RecTFpval = data.frame()
+    }else{
+      RecTFpval <- as.data.frame(RecTFpval) %>% rownames_to_column(.,var = "target")
+      LigRecTab$pval <- NA
+      for (rec in LigRecTab$target){
+        pos1 <- which(LigRecTab$target %in% rec)
+        pos2 <- which(RecTFpval$target %in% rec)
+        LigRecTab$pval[pos1] <- RecTFpval$RecTFpval[pos2]
+      }
+    }
+    saveRDS(LigRecTab, file = paste0(workdir,"/cellpair_LRI_pval.rds")) 
+  }
+  #---------------------------------------------update 20230313------------------------------------
   ## detail of mlnet
 
   detail <- c(source_abundant %>% length(),
@@ -488,14 +522,6 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
   ## output
 
   result <- list(mlnet=mlnet,detail=detail)
-
-  ## save
-
-  cellpair = paste(ligclu,recclu,sep = "-")
-  workdir = paste(workdir,cellpair,sep = "/")
-  dir.create(workdir,recursive = TRUE,showWarnings = F)
-  saveRDS(mlnet, file = paste0(workdir,"/scMLnet.rds"))
-
   return(result)
 
 }
@@ -793,3 +819,53 @@ getRecTFSearch <- function(RecTF.DB, Rec.list, TF.list)
   cat(paste0("get ",length(RecTFList)," activated RecTF pairs\n"))
   return(RecTFTable)
 }
+#--------------------------------------------------update 20240313---------------------------------------------
+getRecpval <- function(RecTF.DB, Rec.list, TF.list, method = c('Fisher','Search'))
+{
+  
+  if(method=='Search'){
+    RecTFTable <- getRecTFSearch(RecTF.DB, Rec.list, TF.list)
+  }else if(method=='Fisher'){
+    RecTFpval <- getRecFisherpval(RecTF.DB, Rec.list, TF.list)
+  }
+  
+  return(RecTFpval)
+}
+  
+getRecFisherpval <- function(RecTF.DB, Rec.list, TF.list)
+{
+  
+  if (!is.data.frame(RecTF.DB))
+    stop("RecTF.DB must be a data frame or tibble object")
+  if (!"source" %in% colnames(RecTF.DB))
+    stop("RecTF.DB must contain a column named 'source'")
+  if (!"target" %in% colnames(RecTF.DB))
+    stop("RecTF.DB must contain a column named 'target'")
+  
+  # make sure Rec.list in RecTF.DB
+  Rec.list <- Rec.list[Rec.list %in% RecTF.DB$source]
+  Rec.list <- as.vector(Rec.list)
+  
+  # make sure TF.list in RecTF.DB
+  TF.list <- TF.list[TF.list %in% RecTF.DB$target]
+  TF.list <- as.vector(TF.list)
+  
+  # get TF activated by Receptors
+  TFofRec <- lapply(Rec.list, function(x){
+    RecTF.DB %>% dplyr::filter(source == x)  %>% dplyr::select(target) %>% unlist() %>% unique()
+  })
+  names(TFofRec) <- Rec.list
+  
+  # get all TF
+  TFofALL <- RecTF.DB %>% dplyr::select(target) %>% unlist() %>% unique()
+  
+  # perform fisher test
+  Recs <- lapply(TFofRec, function(x){
+    fisher_test(subset1 = x, subset2 = TF.list, backgrond = TFofALL)
+  })
+  
+  pval <- unlist(Recs)
+  return(pval)
+  # return(Recs)
+}
+#--------------------------------------------------update 20240313---------------------------------------------
