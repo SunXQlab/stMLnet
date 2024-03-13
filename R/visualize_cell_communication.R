@@ -979,3 +979,192 @@ Perf_Enrich <- function(ls_im, DB=c('GO','KEGG')){
 
   return(res_enrich)
 }
+
+#-----------------------------------------------------------------update 2024-03-13 -------------------------------------------
+#' @title DrawHeatmapPlot
+#' @description Draw Heatmap Plot
+#'
+#' @param InputDir Character, the path where the stMLnet's result is stored.
+#' @param Sender Character, the sender cell type, default = NULL.
+#' @param Receiver Character, the receiver cell type, default = NULL.
+#' @param outputdir Character, the path to save plot.
+#' @param p_height Numercial, the height of plot.
+#' @param p_width Numercial, the width of plot.
+#'
+#' @export
+#' @import dplyr ggplot2 utils grDevices
+#' @importFrom stats na.omit
+#' @importFrom BiocGenerics toTable
+# Heatmap plot pval 
+DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,p_height = 9,p_width = 8.4){
+  
+  inputdir <- InputDir
+  sender <- Sender
+  receiver <- Receiver
+  
+  wd <- paste0(InputDir,"/runscMLnet/")
+  files <- list.files(wd)[grep('TME_',list.files(wd),invert = TRUE)]
+  
+  LRI_allpval <- lapply(files, function(f) {
+    cat("Processing file:", f, "\n")
+    
+    LRI_pval <- readRDS(paste0(wd, f, "/cellpair_LRI_pval.rds"))
+    print(str(LRI_pval))  # Print the structure of LRI_pval
+    
+    if (length(LRI_pval) > 0) {
+      LRI_pval$Sender <- strsplit(f, "_")[[1]][1]
+      LRI_pval$Receiver <- strsplit(f, "_")[[1]][2]
+      return(LRI_pval)
+    } else {
+      # If LRI_pval is empty, return a placeholder or handle it as needed
+      cat("Warning: Empty LRI_pval for file", f, "\n")
+      return(NULL)  # or return an empty data frame, depending on your needs
+    }
+  }) %>% do.call('rbind', .)
+  
+  if (length(sender) != 0 ){
+    
+    LRI_pval_Inter <- LRI_allpval[LRI_allpval$Sender == sender,]
+    df_plot <- data.frame(cellpair = paste0(LRI_pval_Inter$Sender,"_",LRI_pval_Inter$Receiver),
+                          LRpair = paste0(LRI_pval_Inter$source,"_",LRI_pval_Inter$target),
+                          pval = LRI_pval_Inter$pval)
+    
+    df_plot <- df_plot[order(df_plot$pval,decreasing=F),] 
+    
+    # load LR signaling score
+    ct <- sender
+    workpath <- paste0(inputdir,'/runModel/')
+    files = list.files(workpath)
+    files = files[grep(paste0("LRTG_allscore_",ct),files)]  
+    
+    df_LRTGscore = lapply(files, function(file){
+      
+      print(file)
+      LRS_score = readRDS(paste0(workpath,file))[[1]]
+      LRS_score_merge = do.call('cbind',LRS_score)
+      if (length(unique(colnames(LRS_score_merge))) == 1){
+        LRpair <- unique(colnames(LRS_score_merge))
+        LRS_score_merge = LRS_score_merge[,1] 
+        
+        # file <- gsub('-','_',file)
+        df_LigRec <- data.frame(
+          source = LRpair %>% gsub('_.*','',.),
+          target = LRpair %>% gsub('.*_','',.),
+          LRpair = LRpair,
+          count = mean(LRS_score_merge),
+          source_group = strsplit(file,'[_\\.]')[[1]][3],
+          target_group = strsplit(file,'[_\\.]')[[1]][4])
+        
+      }else{
+        LRS_score_merge = do.call('cbind',LRS_score) %>% .[,!duplicated(colnames(.))]
+        
+        # file <- gsub('-','_',file)
+        df_LigRec <- data.frame(
+          source = colnames(LRS_score_merge) %>% gsub('_.*','',.),
+          target = colnames(LRS_score_merge) %>% gsub('.*_','',.),
+          LRpair = colnames(LRS_score_merge),
+          count = colMeans(LRS_score_merge),
+          source_group = strsplit(file,'[_\\.]')[[1]][3],
+          target_group = strsplit(file,'[_\\.]')[[1]][4])
+      }
+      
+    }) %>% do.call('rbind',.)
+    
+    df_LRTGscore$pval <- NA
+    for (lr in df_LRTGscore$LRpair){
+      pos1 <- which(df_plot$LRpair %in% lr)
+      pos2 <- which(df_LRTGscore$LRpair %in% lr)
+      df_LRTGscore$pval[pos2] <- df_plot$pval[pos1]
+    }
+    
+    df <- data.frame(cellpair = paste0(df_LRTGscore$source_group,"_",df_LRTGscore$target_group),
+                     LRpair = df_LRTGscore$LRpair,
+                     pval = df_LRTGscore$pval,
+                     count = df_LRTGscore$count)
+    
+  }
+  
+  if(length(receiver) != 0 ){
+    
+    LRI_pval_Inter <- LRI_allpval[LRI_allpval$Receiver == receiver,]
+    df_plot <- data.frame(cellpair = paste0(LRI_pval_Inter$Sender,"_",LRI_pval_Inter$Receiver),
+                          LRpair = paste0(LRI_pval_Inter$source,"_",LRI_pval_Inter$target),
+                          pval = LRI_pval_Inter$pval)
+    
+    df_plot <- df_plot[order(df_plot$pval,decreasing=F),] 
+    
+    # load LR signaling score
+    ct <- receiver
+    workpath <- paste0(inputdir,'/runModel/')
+    files = list.files(workpath)
+    files = files[grep(paste0(ct,".rds"),files)]  
+    
+    df_LRTGscore = lapply(files, function(file){
+      
+      print(file)
+      LRS_score = readRDS(paste0(workpath,file))[[1]]
+      LRS_score_merge = do.call('cbind',LRS_score)
+      if (length(unique(colnames(LRS_score_merge))) == 1){
+        LRpair <- unique(colnames(LRS_score_merge))
+        LRS_score_merge = LRS_score_merge[,1] 
+        
+        # file <- gsub('-','_',file)
+        df_LigRec <- data.frame(
+          source = LRpair %>% gsub('_.*','',.),
+          target = LRpair %>% gsub('.*_','',.),
+          LRpair = LRpair,
+          count = mean(LRS_score_merge),
+          source_group = strsplit(file,'[_\\.]')[[1]][3],
+          target_group = strsplit(file,'[_\\.]')[[1]][4])
+        
+      }else{
+        LRS_score_merge = do.call('cbind',LRS_score) %>% .[,!duplicated(colnames(.))]
+        
+        # file <- gsub('-','_',file)
+        df_LigRec <- data.frame(
+          source = colnames(LRS_score_merge) %>% gsub('_.*','',.),
+          target = colnames(LRS_score_merge) %>% gsub('.*_','',.),
+          LRpair = colnames(LRS_score_merge),
+          count = colMeans(LRS_score_merge),
+          source_group = strsplit(file,'[_\\.]')[[1]][3],
+          target_group = strsplit(file,'[_\\.]')[[1]][4])
+      }
+      
+    }) %>% do.call('rbind',.)
+    
+    df_LRTGscore$pval <- NA
+    for (lr in df_LRTGscore$LRpair){
+      pos1 <- which(df_plot$LRpair %in% lr)
+      pos2 <- which(df_LRTGscore$LRpair %in% lr)
+      df_LRTGscore$pval[pos2] <- df_plot$pval[pos1]
+    }
+    
+    df <- data.frame(cellpair = paste0(df_LRTGscore$source_group,"_",df_LRTGscore$target_group),
+                     LRpair = df_LRTGscore$LRpair,
+                     pval = df_LRTGscore$pval,
+                     count = df_LRTGscore$count)
+    
+  }
+
+  p1 <- ggplot(df, aes(x = cellpair, y = LRpair, color = pval, size = count)) +
+    geom_point(pch = 16) +
+    scale_color_gradient(low = "red", high = "yellow")+
+    #theme_linedraw() + 
+    #theme(panel.grid.major = element_blank()) +
+    theme(axis.text.x = element_text(angle = 90, size = 10,hjust= NULL, vjust = NULL),
+          axis.text.y = element_text(size = 10),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank()) +
+    scale_x_discrete(position = "bottom")
+  print(p1)
+  
+  ## save
+  
+  pdf(paste0(plotdir,ct,'_bubble_pval.pdf'),height = p_height,width = p_width)
+  print(p1)
+  dev.off()
+  
+}
+#-----------------------------------------------------------------update 2024-03-13 -------------------------------------------
+
+
