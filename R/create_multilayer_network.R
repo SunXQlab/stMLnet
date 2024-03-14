@@ -868,4 +868,16 @@ getRecFisherpval <- function(RecTF.DB, Rec.list, TF.list)
   return(pval)
   # return(Recs)
 }
+
+# perform fisher test to get activate TFs or pathways
+fisher_test <- function(subset1,subset2,backgrond)
+{
+  a=length(intersect(subset1,subset2))
+  b=length(subset1)-a
+  c=length(subset2)-a
+  d=length(backgrond)-a-b-c
+  matrix=matrix(c(a,c,b,d),nrow=2)
+  fisher.test(matrix,alternative="greater")$p.value
+}
+
 #--------------------------------------------------update 20240313---------------------------------------------
