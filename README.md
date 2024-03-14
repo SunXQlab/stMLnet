@@ -46,7 +46,7 @@ After building dependent environment, you can download stMLnet from github:
        
 and then install stMLnet from local:
  
-       install.packages("path/to/stMLnet/stMLnet_0.1.1.tar.gz", repos = NULL, type = "source")
+       install.packages("path/to/stMLnet/stMLnet_0.1.2.tar.gz", repos = NULL, type = "source")
        library(stMLnet)
        
 or you can directly install stMLnet from github:
