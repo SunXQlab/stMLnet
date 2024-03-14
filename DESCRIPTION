@@ -1,7 +1,7 @@
 Package: stMLnet
 Type: Package
 Title: Infer cell-cell communication based on spatial transcriptomics data
-Version: 0.1.1
+Version: 0.1.2
 Author: Jinyu Cheng [aut, cre]
 Maintainer: Jinyu Cheng <chengjy9@mail2.sysu.edu.cn>
 Description: A method for Modeling and inference of multilayer signal networks based on spatial transcriptomics data.
