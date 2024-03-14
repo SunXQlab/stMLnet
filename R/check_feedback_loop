@@ -1,4 +1,4 @@
-#' @title check_feedback_loop
+#' @title CheckFeedbackLoop
 #' @description select multicellular feedback loop
 #'
 #' @param celltypes Vector, indicating the cell types in microenvironment.
