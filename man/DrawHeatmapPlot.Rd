@@ -2,6 +2,7 @@
 % Please edit documentation in R/visualize_cell_communication.R
 \name{DrawHeatmapPlot}
 \alias{DrawHeatmapPlot}
+\title{DrawHeatmapPlot}
 \usage{
 DrawHeatmapPlot(
   InputDir,
