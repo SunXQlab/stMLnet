@@ -931,4 +931,57 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
 }
 #-----------------------------------------------------------------update 2024-03-13 -------------------------------------------
 
+DrawNetworkPlot_v2 <- function(InputDir, Metric, ColorDB, gtitle = "CCI"){
+  suppressMessages(library(CellChat))
+  inputdir <- InputDir
+  key <- Metric
+
+  outputdir <- "./visualize_CCI/NetworkPlot/"
+  dir.create(outputdir, recursive = T, showWarnings = F)
+  files <- list.files(inputdir)[grep("LRTG_im_clean_", list.files(inputdir))]
+  
+  LRTG_detail <- lapply(files, function(f) {
+    LRTG_im <- readRDS(paste0(inputdir, f))
+    c(length(unique(LRTG_im$LRpair)), length(unique(LRTG_im$Target)), 
+      sum(LRTG_im$IM), sum(LRTG_im$im_norm), sum(LRTG_im$IM)/nrow(LRTG_im), 
+      sum(LRTG_im$im_norm)/nrow(LRTG_im))
+  }) %>% do.call("rbind", .) %>% as.data.frame()
+  
+  df_cellpair <- gsub("LRTG_im_clean_|.rds", "", files) %>% 
+    strsplit(., "-") %>% do.call("rbind", .) %>% as.data.frame()
+  
+  LRTG_detail <- cbind(df_cellpair, LRTG_detail)
+  LRTG_detail <- na.omit(LRTG_detail)
+  colnames(LRTG_detail) <- c("cell_from", "cell_to", "n_LRs", 
+                             "n_TGs", "IM", "IM_norm", "mean_IM", "mean_IM_norm")
+  
+  celltype = unique(c(LRTG_detail$cell_from,LRTG_detail$cell_to))
+  LRTG_detail[[key]] <- as.numeric(LRTG_detail[[key]])
+  
+  tmeTab <- LRTG_detail[,c('cell_from','cell_to',key)] 
+  
+  mat2 <- matrix(0,nrow = length(celltype),ncol = length(celltype))
+  rownames(mat2) <- celltype
+  colnames(mat2) <- celltype
+  for (i in 1:nrow(tmeTab)){
+    c1 <- tmeTab$cell_from[i]
+    c2 <- tmeTab$cell_to[i]
+    val <- tmeTab$n_LRs[i]
+    mat2[c1,c2] <- val
+
+  }
+  
+  colordb <- ColorDB[rownames(mat2)]
+  
+  pdf(paste0(outputdir,gtitle,"_NetworkPlot",".pdf"),height = 6,width =6)
+  netVisual_circle(mat2, color.use = colordb,vertex.weight = rowSums(mat2),
+                   alpha.edge = 0.8,edge.width.max= 3,
+                   weight.scale = T, label.edge= F, title.name = "Number of interactions",
+                   arrow.width = 0.8,arrow.size = 0.8,
+                   text.x = 10,text.y = 1.5)
+  dev.off()
+  
+}
+
+
 
