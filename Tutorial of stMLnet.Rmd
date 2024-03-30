@@ -394,6 +394,8 @@ gtitle <- paste0('sender_',Cluster)
 DrawEdgeBundlingPlot(InputDir = ActivityDir, Cluster = Cluster, ColorDB = colordb,
                      Check = TRUE, top.n = 50, gtitle = gtitle, p_height = 7.5, p_width = 7)
 
+DrawCircosPlot(InputDir = ActivityDir,receiver = Cluster, ColorDB = colordb)
+
 ```
 
 #### regulation relationship plot (Waterfall plot)
