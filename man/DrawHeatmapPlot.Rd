@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualize_cell_communication.R
 \name{DrawHeatmapPlot}
 \alias{DrawHeatmapPlot}
-\title{DrawHeatmapPlot}
+\title{DrawEnrichmentPlot}
 \usage{
 DrawHeatmapPlot(
   InputDir,
@@ -25,7 +25,15 @@ DrawHeatmapPlot(
 \item{p_height}{Numercial, the height of plot.}
 
 \item{p_width}{Numercial, the width of plot.}
+
+\item{Cluster}{Character, enrichment analysis of receptors's downstream target genes in specific cluster are shown.}
+
+\item{top.n}{Numercial, Only relevant if Check=T. Number of top enrichment term to show according to the p value.}
+
+\item{gtitle}{Character, the title of plot.}
 }
 \description{
+Draw Enrichment Plot
+
 Draw Heatmap Plot
 }
