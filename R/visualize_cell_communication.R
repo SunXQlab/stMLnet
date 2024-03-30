@@ -930,8 +930,18 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
 
 }
 #-----------------------------------------------------------------update 2024-03-13 -------------------------------------------
-
-DrawNetworkPlot_v2 <- function(InputDir, Metric, ColorDB, gtitle = "CCI"){
+#' @title DrawCirclePlot
+#' @description Draw Network Plot
+#'
+#' @param InputDir Character, the path where the signals importance is stored.
+#' @param Metric Character, indicating the metrics of edges in Network plot. Available options are: n_LRs, n_TGs, IM,  IM_norm,  mean_IM, mean_IM_norm
+#' @param ColorDB Vector, indicating the colors of cell types.
+#' @param gtitle Character, the title of plot.
+#'
+#' @export
+#' @import dplyr graphics grDevices CellChat
+#'
+DrawCirclePlot <- function(InputDir, Metric, ColorDB, gtitle = "CCI"){
   suppressMessages(library(CellChat))
   inputdir <- InputDir
   key <- Metric
@@ -983,6 +993,16 @@ DrawNetworkPlot_v2 <- function(InputDir, Metric, ColorDB, gtitle = "CCI"){
   
 }
 
+#' @title DrawCircosPlot
+#' @description Draw Circos Plot
+#'
+#' @param InputDir Character, the path where the signals importance is stored.
+#' @param receiver Character, indicating the receiver cell type.
+#' @param ColorDB Vector, indicating the colors of cell types.
+#'
+#' @export
+#' @import dplyr graphics grDevices iTALK circlize
+#'
 DrawCircosPlot <- function(InputDir, receiver, ColorDB){
   
   suppressMessages(library(iTALK))
@@ -1047,7 +1067,23 @@ DrawCircosPlot <- function(InputDir, receiver, ColorDB){
     
 }
 
-DrawAlluviumPlot_v2 <- function(MLnetDir = MLnetDir,ImportDir= ImportDir, Sender,Receiver, ColorDB = colordb,
+#' @title DrawAlluviumMLnetPlot
+#' @description Draw Alluvium MLnet Plot
+#'
+#' @param MLnetDir Character, the path where the multilayer network is stored.
+#' @param ImportDir Character, the path where the signals importance is stored.
+#' @param Sender Character, sender cell type are shown.
+#' @param Receiver Character, receiver cell type are shown.
+#' @param ColorDB Vector, containing the color of cell types, key siganls and others.
+#' @param Check Logical, Whether to do check visualization.
+#' @param top.n Numercial, Only relevant if Check=T. Number of top regulation between LR pairs and target genes to show according to the signals importance.
+#' @param p_height Numercial, the height of plot.
+#' @param p_width Numercial, the width of plot.
+#'
+#' @export
+#' @import dplyr ggplot2 grDevices ggsci
+#' @importFrom stats sd
+DrawAlluviumMLnetPlot <- function(MLnetDir = MLnetDir,ImportDir= ImportDir, Sender,Receiver, ColorDB = colordb,
                                 Check = TRUE, top.n = 30, p_height = 7.5, p_width = 7){
   suppressMessages(library(ggsci))
   mycolors_locus <- pal_locuszoom(palette = "default", alpha = 0.8)(7)
