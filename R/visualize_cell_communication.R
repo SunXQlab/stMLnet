@@ -1047,5 +1047,92 @@ DrawCircosPlot <- function(InputDir, receiver, ColorDB){
     
 }
 
+DrawAlluviumPlot_v2 <- function(MLnetDir = MLnetDir,ImportDir= ImportDir, Sender,Receiver, ColorDB = colordb,
+                                Check = TRUE, top.n = 30, p_height = 7.5, p_width = 7){
+  suppressMessages(library(ggsci))
+  mycolors_locus <- pal_locuszoom(palette = "default", alpha = 0.8)(7)
+  
+  nodekey <- c("Ligand","Receptor","TF","Target")
+  mycolor_key <- mycolors_locus[1:4]
+  names(mycolor_key) <- nodekey
+  
+  mlnetdir <- MLnetDir
+  importdir <- ImportDir
+  sender <- Sender
+  receiver <- Receiver
+  colodb <- ColorDB
+  outputdir <- "./visualize_CCI/AlluvialPlot/"
+  dir.create(outputdir, recursive = T, showWarnings = F)
+  
+  cp = paste0(sender,"-",receiver)
+  
+  # load MLnet
+  
+  files <- list.files(mlnetdir)
+  MLnet <- readRDS(paste0(mlnetdir,sender,"_",receiver,"/scMLnet.rds"))
+  
+  df_ligrec = data.frame(Ligand = MLnet$LigRec$source, Receptor = MLnet$LigRec$target) 
+  df_rectf = data.frame(Receptor = MLnet$RecTF$source, TF = MLnet$RecTF$target)
+  df_tftar = data.frame(TF = MLnet$TFTar$source, Target = MLnet$TFTar$target)
+  
+  df_mlnet = df_ligrec %>% merge(., df_rectf, by = 'Receptor') %>% 
+    merge(., df_tftar, by = 'TF') %>% 
+    dplyr::select(Ligand, Receptor, TF, Target) %>% 
+    arrange(Ligand, Receptor)
+  df_mlnet$LRpair <- paste0(df_mlnet$Ligand,"_",df_mlnet$Receptor)
+  
+  # load LRTG_score
+  files = list.files(importdir)
+  files = files[grep("_im_",files)]
+  file_cp = files[grep(paste0(cp,".rds"),files)]
+  
+  LRTG_im_merge <- lapply(file_cp, function(f){
+    
+    LRTG_im <- readRDS(paste0(importdir,f))
+    LRTG_im$Sender <- strsplit(f,'-|_')[[1]][4]
+    LRTG_im
+    # head(LRTG_im)
+    
+  }) %>% do.call('rbind',.)
+  
+  LRTG_im_merge$LRTG <- paste0(LRTG_im_merge$LRpair,"_",LRTG_im_merge$Target)
+  df_mlnet$LRTG <- paste0(df_mlnet$LRpair,"_",df_mlnet$Target)
+  LRTG_im_merge$TF <- df_mlnet$TF[which(LRTG_im_merge$LRTG %in% df_mlnet$LRTG)]
+  
+  LRTG_im_merge <- LRTG_im_merge[,-8]
+  
+  df_MLnet_long <- prepareAlluviumPlotData(lrtg_im = LRTG_im_merge, 
+                                            color.by = 'Sender',
+                                            do.check = TRUE,top.n=30)
+  df_MLnet_long$Nodekey <- factor(df_MLnet_long$Nodekey,levels = c("Ligand", "Receptor","TF", "Target" ))
+  
+  pt <-ggplot(df_MLnet_long,
+              aes(x = Nodekey, stratum = Node, alluvium = ID,
+                  y = Score, fill = Nodekey,label = Node)) +
+    scale_x_discrete(expand = c(.1, .1)) +
+    scale_fill_manual(values = mycolor_key) + 
+    geom_flow() +
+    geom_stratum(alpha = .5) +
+    geom_text(stat = "stratum", size = 3) +
+    theme_minimal()+
+    theme(
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.text.x = element_text(size = 11),
+      plot.title = element_text(size = 15, hjust = 0.5),
+      plot.subtitle = element_text(size = 13, hjust = 0.5),
+      panel.grid = element_blank(),
+      legend.position = 'none'
+    ) +
+    ggtitle("Multilayer Network")
+  pt
+  
+  pdf(paste0(outputdir,'AlluviumPlot-LRTFTG_',cp,'.pdf'),height = p_height,width = p_width)
+  print(pt)
+  dev.off()
+  
+}
+
+
 
 
