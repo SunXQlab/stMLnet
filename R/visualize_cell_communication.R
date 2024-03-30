@@ -983,5 +983,69 @@ DrawNetworkPlot_v2 <- function(InputDir, Metric, ColorDB, gtitle = "CCI"){
   
 }
 
+DrawCircosPlot <- function(InputDir, receiver, ColorDB){
+  
+  suppressMessages(library(iTALK))
+  suppressMessages(library(circlize))
+  
+  inputdir = InputDir
+  
+  outputdir <- "./visualize_CCI/CircosPlot/"
+  dir.create(outputdir, recursive = T, showWarnings = F)
+  
+  files = list.files(inputdir)
+  files = files[grep(paste0('-',receiver,'.rds'),files)]
+  
+  df_LRTGscore = lapply(files, function(file){
+    
+    print(file)
+    LRS_score = readRDS(paste0(inputdir,file))[[1]]
+    LRS_score_merge = do.call('cbind',LRS_score) %>% .[,!duplicated(colnames(.))]
+    
+    # file <- gsub('-','_',file)
+    df_LigRec <- data.frame(
+      source = colnames(LRS_score_merge) %>% gsub('_.*','',.),
+      target = colnames(LRS_score_merge) %>% gsub('.*_','',.),
+      LRpair = colnames(LRS_score_merge),
+      count = colMeans(LRS_score_merge),
+      source_group = strsplit(file,"[._-]")[[1]][3],
+      target_group = strsplit(file,"[._-]")[[1]][4]
+    )
+    
+  }) %>% do.call('rbind',.)
+  
+  if(!is.null(df_LRTGscore)){
+    
+    # input
+    res <- data.frame(ligand = df_LRTGscore$source,receptor = df_LRTGscore$target,
+                      cell_from = df_LRTGscore$source_group,cell_to = df_LRTGscore$target_group, 
+                      count = df_LRTGscore$count, comm_type = "growth factor")
+    res <- res[order(res$count,decreasing=T),] 
+    # plot
+    if (dim(res)[1] > 30){
+      # select top 20
+      res <- res[1:30,]
+    }
+    
+    min(res$count)
+    
+    colordb <- ColorDB[which(names(ColorDB) %in% c(unique(res$cell_from),unique(res$cell_to)))]
+    
+    pdf(paste0(outputdir,"ChordPlot_v2_LRscore_","receiver_",receiver,".pdf"),height = 5,width = 5)
+    LRPlot(res,datatype='mean count',
+           cell_col=colordb,
+           link.arr.lwd=res$count,
+           link.arr.col="#696969", # "#808080"
+           link.arr.width=0.25,
+           track.height_1 = uh(1,"mm"),
+           track.height_2 = uh(11,"mm"),
+           annotation.height_1 = 0.015,
+           annotation.height_2 = 0.01,
+           text.vjust = "0.4cm")
+    dev.off()
+  }
+    
+}
+
 
 
