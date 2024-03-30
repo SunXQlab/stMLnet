@@ -53,7 +53,7 @@ Install the dependency R package of visualization: plotrix, clusterProfiler, ggp
 # pkgs <- c('clusterProfiler','org.Hs.eg.db')
 # for (pkg in pkgs) {BiocManager::install(pkg)}
 
-pkgs <- c('ggplot2','ggsci','clusterProfiler','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
+pkgs <- c('ggplot2','ggsci','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
 for (pkg in pkgs) {
   if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
 }
