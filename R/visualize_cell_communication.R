@@ -758,227 +758,227 @@ drawAlluviumPlot <- function(df_input, colodb){
 #' @import dplyr ggplot2 utils grDevices
 #' @importFrom stats na.omit
 #' @importFrom BiocGenerics toTable
-DrawEnrichmentPlot <- function(InputDir, Cluster, top.n = 3, gtitle = 'Enrichment', p_height = 7.5, p_width = 7){
-
-  inputdir <- InputDir
-  cluster <- Cluster
-  outputdir <- './visualize_CCI/Heatmap/'
-  dir.create(outputdir,recursive=T,showWarnings = F)
-
-  ## input
-
-  files <- list.files(inputdir)
-  files <- files[grep(paste0('-',cluster,'$'),files)]
-  mulNetDF = lapply(files, function(f){
-
-    mlnet <- readRDS(paste0(inputdir,f,"/scMLnet.rds"))
-    if(nrow(mlnet$LigRec)!=0){
-      colnames(mlnet$LigRec) <- c('Ligand','Receptor')
-      colnames(mlnet$RecTF) <- c('Receptor','TF')
-      colnames(mlnet$TFTar) <- c('TF','Target')
-      mlnet_df <- merge(mlnet$LigRec,mlnet$RecTF,by='Receptor')
-      mlnet_df <- merge(mlnet_df,mlnet$TFTar,by='TF')
-    }else{
-      mlnet_df <- as.data.frame(matrix(ncol=4,dimnames = list(c(),c('TF', 'Receptor', 'Ligand', 'Target'))))
-    }
-    mlnet_df[,c('Receptor','Target')]
-
-  }) %>% do.call('rbind',.)
-  mulNetDF = stats::na.omit(mulNetDF)
-  mulNetList = lapply(unique(mulNetDF$Target), function(tg){ mulNetDF[mulNetDF$Target==tg,] })
-  names(mulNetList) <- unique(mulNetDF$Target)
-
-  ## enrich
-
-  files <- list.files(outputdir)
-  check_res <- grep(paste0('res_Enrich_',gtitle,'.rds'),files)
-  if(length(check_res)==1){
-
-    res_Enrich <- readRDS(paste0(outputdir,'res_Enrich_',gtitle,'.rds'))
-
-  }else{
-
-    res_GO <- Perf_Enrich(mulNetList,DB='GO')
-    res_KEGG <- Perf_Enrich(mulNetList,DB='KEGG')
-    res_Enrich <- list(res_GO = res_GO,
-                       res_KEGG = res_KEGG)
-    saveRDS(res_Enrich, paste0(outputdir,'res_Enrich_',gtitle,'.rds'))
-
-  }
-
-  ## ORA-KEGG
-
-  res_KEGG <- res_Enrich$res_KEGG
-  df_kegg <- res_KEGG[res_KEGG$pvalue <= 0.01,]
-  if(nrow(df_kegg)>0){
-
-    df_kegg$geneRatio <- lapply(df_kegg$GeneRatio,function(chr){
-      x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
-      y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
-      x/y
-    }) %>% unlist()
-    df_kegg$bgRatio <- lapply(df_kegg$BgRatio,function(chr){
-      x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
-      y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
-      x/y
-    }) %>% unlist()
-
-    keep_term <- lapply(unique(df_kegg$Regulator), function(key){
-
-      df_kegg[df_kegg$Regulator==key,'ID'] %>% head(.,top.n)
-
-    }) %>% unlist() %>% unique()
-    df_kegg$ONTOLOGY <- 'KEGG'
-    df_kegg <- df_kegg[df_kegg$ID %in% keep_term,c(13,1:2,5:7,10:11)]
-    df_kegg <- df_kegg[order(df_kegg$ONTOLOGY,df_kegg$ID),]
-
-  }
-
-  ## ORA-GO
-
-  res_GO <- res_Enrich$res_GO
-  df_go <- res_GO[res_GO$pvalue<=0.01,]
-  if(nrow(df_go)>0){
-
-    df_go$geneRatio <- lapply(df_go$GeneRatio,function(chr){
-
-      x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
-      y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
-      x/y
-    }) %>% unlist()
-    df_go$bgRatio <- lapply(df_go$BgRatio,function(chr){
-      x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
-      y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
-      x/y
-    }) %>% unlist()
-    df_go <- df_go[df_go$ONTOLOGY=='BP',]
-
-    keep_term <- lapply(unique(df_go$Regulator), function(key){
-
-      df_go[df_go$Regulator==key,'ID'] %>% head(.,top.n)
-
-    }) %>% unlist() %>% unique()
-    df_go <- df_go[df_go$ID %in% keep_term,c(1:3,6:8,11:12),]
-    df_go <- df_go[order(df_go$ONTOLOGY,df_go$ID),]
-
-  }
-
-  ## data
-
-  df_plot <- rbind(df_go,df_kegg)
-  df_plot <- df_plot[df_plot$ONTOLOGY %in% c('KEGG','BP'),]
-  df_plot$Description <- factor(df_plot$Description, levels = unique(df_plot$Description))
-  df_plot$ONTOLOGY <- factor(df_plot$ONTOLOGY, levels = c('BP','MF','CC','KEGG'))
-  anno_x_loca <- lapply(unique(df_plot$ONTOLOGY), function(key){
-
-    df <- df_plot[!duplicated(df_plot$ID),]
-    grep(key,df$ONTOLOGY) %>% max()
-
-  }) %>% unlist()
-  anno_x_loca <- anno_x_loca+0.5
-  names(anno_x_loca) <- unique(df_plot$ONTOLOGY)
-
-  ## plot
-
-  if(nrow(df_plot)>0){
-
-    pt_merge <- ggplot(data=df_plot,aes(x=Description,y=Regulator,size=geneRatio,col=p.adjust))+
-      geom_hline(aes(x=Description,y=Regulator,yintercept = 1:nrow(df_plot)),size= 1.5,colour= "#E4EDF2",alpha= .5)+
-      geom_vline(aes(x=Description,y=Regulator,xintercept = anno_x_loca[1]),size=0.5,linetype= "dashed")+
-      geom_point()+ coord_flip() +
-      scale_color_gradient(low = '#C51162',high = '#FCE4EC') +
-      scale_size_continuous(range = c(1,4)) +
-      theme_bw() + labs(title='Function Enrichment Analysis of CCI',x='',y='') +
-      theme(
-        plot.title = element_text(hjust = 0.5,size = 12), # 标题居中
-        panel.background = element_blank(), # 去除坐标图的背景色
-        legend.key = element_blank(), # 去除图例图案的背景色
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8), # x轴刻度方向
-        axis.text.y = element_text(size = 10),
-        panel.grid = element_blank(), # 去除辅助网格线
-        # legend.position = 'bottom',
-        # legend.direction = 'horizontal'
-        legend.position = 'right',
-        legend.direction = 'vertical'
-      )
-    print(pt_merge)
-
-    png(paste0(outputdir,"Enrichment_BP_KEGG_",gtitle,".png"),
-        width = 15, height = 5, units = 'in', res = 1000)
-    print(pt_merge)
-    dev.off()
-
-    pdf(paste0(outputdir,"Enrichment_BP_KEGG_",gtitle,".pdf"),
-        width = 15, height = 5)
-    print(pt_merge)
-    dev.off()
-
-  }
-
-  return(pt)
-
-}
-
-Perf_ORA <- function(ls_tg,DB=c('GO','KEGG')){
-
-  geneList <- ls_tg
-  g2s <- toTable(org.Hs.egSYMBOL)
-  geneList <- g2s$gene_id[match(geneList,g2s$symbol)]
-  geneList <- stats::na.omit(geneList)
-
-  tryCatch({
-    if(DB == 'GO'){
-
-      res_enrich <- clusterProfiler::enrichGO(geneList, 'org.Hs.eg.db', ont = 'ALL', keyType = 'ENTREZID',
-                             minGSSize = 1, pvalueCutoff = 0.99)@result
-      res_enrich$GeneRatio <- res_enrich$Count/length(enrich_gobp@gene)
-      res_enrich <- res_enrich[,c("ID","Description","GeneRatio","p.adjust",'ONTOLOGY')]
-
-    }else{
-
-      res_enrich <- clusterProfiler::enrichKEGG(geneList, minGSSize = 1, pvalueCutoff = 0.99)@result
-      res_enrich$GeneRatio <- res_enrich$Count/length(enrich_kegg@gene)
-      res_enrich <- res_enrich[,c("ID","Description","GeneRatio","p.adjust")]
-      res_enrich$ONTOLOGY <- 'KEGG'
-
-    }
-  }, error = function(e){
-    res_enrich <- as.data.frame(matrix(
-      ncol = 5,dimnames = list(c(),c("ID","Description","GeneRatio","p.adjust",'ONTOLOGY'))))
-  })
-
-  if(!exists('res_enrich')){
-    res_enrich <- as.data.frame(matrix(
-      ncol = 5,dimnames = list(c(),c("ID","Description","GeneRatio","p.adjust",'ONTOLOGY'))))
-  }
-
-  return(res_enrich)
-}
-
-Perf_Enrich <- function(ls_im, DB=c('GO','KEGG')){
-
-  Recs <- names(ls_im)
-  res_enrich <- lapply(1:length(Recs), function(i){
-
-    # rec <- 'ACVR2A'
-    print(paste0(i,"/",length(Recs)))
-    tgs <- ls_im[[i]]$Target
-
-    res_ORA <- Perf_ORA(tgs,DB=DB)
-    if(nrow(res_ORA)==0){
-      res_ORA <- as.data.frame(matrix(
-        ncol = 6,dimnames = list(c(),
-                                 c("ID","Description","GeneRatio","p.adjust","ONTOLOGY","Regulator"))))
-      res_ORA
-    }else{
-      res_ORA$Regulator <- Recs[i]
-      res_ORA
-    }
-
-  }) %>% do.call('rbind',.)
-
-  return(res_enrich)
-}
+# DrawEnrichmentPlot <- function(InputDir, Cluster, top.n = 3, gtitle = 'Enrichment', p_height = 7.5, p_width = 7){
+#
+#   inputdir <- InputDir
+#   cluster <- Cluster
+#   outputdir <- './visualize_CCI/Heatmap/'
+#   dir.create(outputdir,recursive=T,showWarnings = F)
+#
+#   ## input
+#
+#   files <- list.files(inputdir)
+#   files <- files[grep(paste0('-',cluster,'$'),files)]
+#   mulNetDF = lapply(files, function(f){
+#
+#     mlnet <- readRDS(paste0(inputdir,f,"/scMLnet.rds"))
+#     if(nrow(mlnet$LigRec)!=0){
+#       colnames(mlnet$LigRec) <- c('Ligand','Receptor')
+#       colnames(mlnet$RecTF) <- c('Receptor','TF')
+#       colnames(mlnet$TFTar) <- c('TF','Target')
+#       mlnet_df <- merge(mlnet$LigRec,mlnet$RecTF,by='Receptor')
+#       mlnet_df <- merge(mlnet_df,mlnet$TFTar,by='TF')
+#     }else{
+#       mlnet_df <- as.data.frame(matrix(ncol=4,dimnames = list(c(),c('TF', 'Receptor', 'Ligand', 'Target'))))
+#     }
+#     mlnet_df[,c('Receptor','Target')]
+#
+#   }) %>% do.call('rbind',.)
+#   mulNetDF = stats::na.omit(mulNetDF)
+#   mulNetList = lapply(unique(mulNetDF$Target), function(tg){ mulNetDF[mulNetDF$Target==tg,] })
+#   names(mulNetList) <- unique(mulNetDF$Target)
+#
+#   ## enrich
+#
+#   files <- list.files(outputdir)
+#   check_res <- grep(paste0('res_Enrich_',gtitle,'.rds'),files)
+#   if(length(check_res)==1){
+#
+#     res_Enrich <- readRDS(paste0(outputdir,'res_Enrich_',gtitle,'.rds'))
+#
+#   }else{
+#
+#     res_GO <- Perf_Enrich(mulNetList,DB='GO')
+#     res_KEGG <- Perf_Enrich(mulNetList,DB='KEGG')
+#     res_Enrich <- list(res_GO = res_GO,
+#                        res_KEGG = res_KEGG)
+#     saveRDS(res_Enrich, paste0(outputdir,'res_Enrich_',gtitle,'.rds'))
+#
+#   }
+#
+#   ## ORA-KEGG
+#
+#   res_KEGG <- res_Enrich$res_KEGG
+#   df_kegg <- res_KEGG[res_KEGG$pvalue <= 0.01,]
+#   if(nrow(df_kegg)>0){
+#
+#     df_kegg$geneRatio <- lapply(df_kegg$GeneRatio,function(chr){
+#       x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
+#       y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
+#       x/y
+#     }) %>% unlist()
+#     df_kegg$bgRatio <- lapply(df_kegg$BgRatio,function(chr){
+#       x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
+#       y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
+#       x/y
+#     }) %>% unlist()
+#
+#     keep_term <- lapply(unique(df_kegg$Regulator), function(key){
+#
+#       df_kegg[df_kegg$Regulator==key,'ID'] %>% head(.,top.n)
+#
+#     }) %>% unlist() %>% unique()
+#     df_kegg$ONTOLOGY <- 'KEGG'
+#     df_kegg <- df_kegg[df_kegg$ID %in% keep_term,c(13,1:2,5:7,10:11)]
+#     df_kegg <- df_kegg[order(df_kegg$ONTOLOGY,df_kegg$ID),]
+#
+#   }
+#
+#   ## ORA-GO
+#
+#   res_GO <- res_Enrich$res_GO
+#   df_go <- res_GO[res_GO$pvalue<=0.01,]
+#   if(nrow(df_go)>0){
+#
+#     df_go$geneRatio <- lapply(df_go$GeneRatio,function(chr){
+#
+#       x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
+#       y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
+#       x/y
+#     }) %>% unlist()
+#     df_go$bgRatio <- lapply(df_go$BgRatio,function(chr){
+#       x = strsplit(chr,'/')[[1]][1] %>% as.numeric()
+#       y = strsplit(chr,'/')[[1]][2] %>% as.numeric()
+#       x/y
+#     }) %>% unlist()
+#     df_go <- df_go[df_go$ONTOLOGY=='BP',]
+#
+#     keep_term <- lapply(unique(df_go$Regulator), function(key){
+#
+#       df_go[df_go$Regulator==key,'ID'] %>% head(.,top.n)
+#
+#     }) %>% unlist() %>% unique()
+#     df_go <- df_go[df_go$ID %in% keep_term,c(1:3,6:8,11:12),]
+#     df_go <- df_go[order(df_go$ONTOLOGY,df_go$ID),]
+#
+#   }
+#
+#   ## data
+#
+#   df_plot <- rbind(df_go,df_kegg)
+#   df_plot <- df_plot[df_plot$ONTOLOGY %in% c('KEGG','BP'),]
+#   df_plot$Description <- factor(df_plot$Description, levels = unique(df_plot$Description))
+#   df_plot$ONTOLOGY <- factor(df_plot$ONTOLOGY, levels = c('BP','MF','CC','KEGG'))
+#   anno_x_loca <- lapply(unique(df_plot$ONTOLOGY), function(key){
+#
+#     df <- df_plot[!duplicated(df_plot$ID),]
+#     grep(key,df$ONTOLOGY) %>% max()
+#
+#   }) %>% unlist()
+#   anno_x_loca <- anno_x_loca+0.5
+#   names(anno_x_loca) <- unique(df_plot$ONTOLOGY)
+#
+#   ## plot
+#
+#   if(nrow(df_plot)>0){
+#
+#     pt_merge <- ggplot(data=df_plot,aes(x=Description,y=Regulator,size=geneRatio,col=p.adjust))+
+#       geom_hline(aes(x=Description,y=Regulator,yintercept = 1:nrow(df_plot)),size= 1.5,colour= "#E4EDF2",alpha= .5)+
+#       geom_vline(aes(x=Description,y=Regulator,xintercept = anno_x_loca[1]),size=0.5,linetype= "dashed")+
+#       geom_point()+ coord_flip() +
+#       scale_color_gradient(low = '#C51162',high = '#FCE4EC') +
+#       scale_size_continuous(range = c(1,4)) +
+#       theme_bw() + labs(title='Function Enrichment Analysis of CCI',x='',y='') +
+#       theme(
+#         plot.title = element_text(hjust = 0.5,size = 12), # 标题居中
+#         panel.background = element_blank(), # 去除坐标图的背景色
+#         legend.key = element_blank(), # 去除图例图案的背景色
+#         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8), # x轴刻度方向
+#         axis.text.y = element_text(size = 10),
+#         panel.grid = element_blank(), # 去除辅助网格线
+#         # legend.position = 'bottom',
+#         # legend.direction = 'horizontal'
+#         legend.position = 'right',
+#         legend.direction = 'vertical'
+#       )
+#     print(pt_merge)
+#
+#     png(paste0(outputdir,"Enrichment_BP_KEGG_",gtitle,".png"),
+#         width = 15, height = 5, units = 'in', res = 1000)
+#     print(pt_merge)
+#     dev.off()
+#
+#     pdf(paste0(outputdir,"Enrichment_BP_KEGG_",gtitle,".pdf"),
+#         width = 15, height = 5)
+#     print(pt_merge)
+#     dev.off()
+#
+#   }
+#
+#   return(pt)
+#
+# }
+#
+# Perf_ORA <- function(ls_tg,DB=c('GO','KEGG')){
+#
+#    geneList <- ls_tg
+#    g2s <- toTable(org.Hs.egSYMBOL)
+#    geneList <- g2s$gene_id[match(geneList,g2s$symbol)]
+#    geneList <- stats::na.omit(geneList)
+#
+#    tryCatch({
+#      if(DB == 'GO'){
+#
+#        res_enrich <- clusterProfiler::enrichGO(geneList, 'org.Hs.eg.db', ont = 'ALL', keyType = 'ENTREZID',
+#                               minGSSize = 1, pvalueCutoff = 0.99)@result
+#        res_enrich$GeneRatio <- res_enrich$Count/length(enrich_gobp@gene)
+#        res_enrich <- res_enrich[,c("ID","Description","GeneRatio","p.adjust",'ONTOLOGY')]
+#
+#      }else{
+#
+#        res_enrich <- clusterProfiler::enrichKEGG(geneList, minGSSize = 1, pvalueCutoff = 0.99)@result
+#        res_enrich$GeneRatio <- res_enrich$Count/length(enrich_kegg@gene)
+#        res_enrich <- res_enrich[,c("ID","Description","GeneRatio","p.adjust")]
+#        res_enrich$ONTOLOGY <- 'KEGG'
+#
+#      }
+#    }, error = function(e){
+#      res_enrich <- as.data.frame(matrix(
+#        ncol = 5,dimnames = list(c(),c("ID","Description","GeneRatio","p.adjust",'ONTOLOGY'))))
+#    })
+#
+#    if(!exists('res_enrich')){
+#      res_enrich <- as.data.frame(matrix(
+#        ncol = 5,dimnames = list(c(),c("ID","Description","GeneRatio","p.adjust",'ONTOLOGY'))))
+#    }
+#
+#    return(res_enrich)
+#  }
+#
+# Perf_Enrich <- function(ls_im, DB=c('GO','KEGG')){
+#
+#    Recs <- names(ls_im)
+#    res_enrich <- lapply(1:length(Recs), function(i){
+#
+#      # rec <- 'ACVR2A'
+#      print(paste0(i,"/",length(Recs)))
+#      tgs <- ls_im[[i]]$Target
+#
+#      res_ORA <- Perf_ORA(tgs,DB=DB)
+#      if(nrow(res_ORA)==0){
+#        res_ORA <- as.data.frame(matrix(
+#          ncol = 6,dimnames = list(c(),
+#                                   c("ID","Description","GeneRatio","p.adjust","ONTOLOGY","Regulator"))))
+#        res_ORA
+#      }else{
+#        res_ORA$Regulator <- Recs[i]
+#        res_ORA
+#      }
+#
+#    }) %>% do.call('rbind',.)
+#
+#    return(res_enrich)
+#  }
 
 #-----------------------------------------------------------------update 2024-03-13 -------------------------------------------
 #' @title DrawHeatmapPlot
@@ -995,22 +995,22 @@ Perf_Enrich <- function(ls_im, DB=c('GO','KEGG')){
 #' @import dplyr ggplot2 utils grDevices
 #' @importFrom stats na.omit
 #' @importFrom BiocGenerics toTable
-# Heatmap plot pval 
+# Heatmap plot pval
 DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,p_height = 9,p_width = 8.4){
-  
+
   inputdir <- InputDir
   sender <- Sender
   receiver <- Receiver
-  
+
   wd <- paste0(InputDir,"/runscMLnet/")
   files <- list.files(wd)[grep('TME_',list.files(wd),invert = TRUE)]
-  
+
   LRI_allpval <- lapply(files, function(f) {
     cat("Processing file:", f, "\n")
-    
+
     LRI_pval <- readRDS(paste0(wd, f, "/cellpair_LRI_pval.rds"))
     print(str(LRI_pval))  # Print the structure of LRI_pval
-    
+
     if (length(LRI_pval) > 0) {
       LRI_pval$Sender <- strsplit(f, "_")[[1]][1]
       LRI_pval$Receiver <- strsplit(f, "_")[[1]][2]
@@ -1021,31 +1021,31 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
       return(NULL)  # or return an empty data frame, depending on your needs
     }
   }) %>% do.call('rbind', .)
-  
+
   if (length(sender) != 0 ){
-    
+
     LRI_pval_Inter <- LRI_allpval[LRI_allpval$Sender == sender,]
     df_plot <- data.frame(cellpair = paste0(LRI_pval_Inter$Sender,"_",LRI_pval_Inter$Receiver),
                           LRpair = paste0(LRI_pval_Inter$source,"_",LRI_pval_Inter$target),
                           pval = LRI_pval_Inter$pval)
-    
-    df_plot <- df_plot[order(df_plot$pval,decreasing=F),] 
-    
+
+    df_plot <- df_plot[order(df_plot$pval,decreasing=F),]
+
     # load LR signaling score
     ct <- sender
     workpath <- paste0(inputdir,'/runModel/')
     files = list.files(workpath)
-    files = files[grep(paste0("LRTG_allscore_",ct),files)]  
-    
+    files = files[grep(paste0("LRTG_allscore_",ct),files)]
+
     df_LRTGscore = lapply(files, function(file){
-      
+
       print(file)
       LRS_score = readRDS(paste0(workpath,file))[[1]]
       LRS_score_merge = do.call('cbind',LRS_score)
       if (length(unique(colnames(LRS_score_merge))) == 1){
         LRpair <- unique(colnames(LRS_score_merge))
-        LRS_score_merge = LRS_score_merge[,1] 
-        
+        LRS_score_merge = LRS_score_merge[,1]
+
         # file <- gsub('-','_',file)
         df_LigRec <- data.frame(
           source = LRpair %>% gsub('_.*','',.),
@@ -1054,10 +1054,10 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
           count = mean(LRS_score_merge),
           source_group = strsplit(file,'[_\\.]')[[1]][3],
           target_group = strsplit(file,'[_\\.]')[[1]][4])
-        
+
       }else{
         LRS_score_merge = do.call('cbind',LRS_score) %>% .[,!duplicated(colnames(.))]
-        
+
         # file <- gsub('-','_',file)
         df_LigRec <- data.frame(
           source = colnames(LRS_score_merge) %>% gsub('_.*','',.),
@@ -1067,47 +1067,47 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
           source_group = strsplit(file,'[_\\.]')[[1]][3],
           target_group = strsplit(file,'[_\\.]')[[1]][4])
       }
-      
+
     }) %>% do.call('rbind',.)
-    
+
     df_LRTGscore$pval <- NA
     for (lr in df_LRTGscore$LRpair){
       pos1 <- which(df_plot$LRpair %in% lr)
       pos2 <- which(df_LRTGscore$LRpair %in% lr)
       df_LRTGscore$pval[pos2] <- df_plot$pval[pos1]
     }
-    
+
     df <- data.frame(cellpair = paste0(df_LRTGscore$source_group,"_",df_LRTGscore$target_group),
                      LRpair = df_LRTGscore$LRpair,
                      pval = df_LRTGscore$pval,
                      count = df_LRTGscore$count)
-    
+
   }
-  
+
   if(length(receiver) != 0 ){
-    
+
     LRI_pval_Inter <- LRI_allpval[LRI_allpval$Receiver == receiver,]
     df_plot <- data.frame(cellpair = paste0(LRI_pval_Inter$Sender,"_",LRI_pval_Inter$Receiver),
                           LRpair = paste0(LRI_pval_Inter$source,"_",LRI_pval_Inter$target),
                           pval = LRI_pval_Inter$pval)
-    
-    df_plot <- df_plot[order(df_plot$pval,decreasing=F),] 
-    
+
+    df_plot <- df_plot[order(df_plot$pval,decreasing=F),]
+
     # load LR signaling score
     ct <- receiver
     workpath <- paste0(inputdir,'/runModel/')
     files = list.files(workpath)
-    files = files[grep(paste0(ct,".rds"),files)]  
-    
+    files = files[grep(paste0(ct,".rds"),files)]
+
     df_LRTGscore = lapply(files, function(file){
-      
+
       print(file)
       LRS_score = readRDS(paste0(workpath,file))[[1]]
       LRS_score_merge = do.call('cbind',LRS_score)
       if (length(unique(colnames(LRS_score_merge))) == 1){
         LRpair <- unique(colnames(LRS_score_merge))
-        LRS_score_merge = LRS_score_merge[,1] 
-        
+        LRS_score_merge = LRS_score_merge[,1]
+
         # file <- gsub('-','_',file)
         df_LigRec <- data.frame(
           source = LRpair %>% gsub('_.*','',.),
@@ -1116,10 +1116,10 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
           count = mean(LRS_score_merge),
           source_group = strsplit(file,'[_\\.]')[[1]][3],
           target_group = strsplit(file,'[_\\.]')[[1]][4])
-        
+
       }else{
         LRS_score_merge = do.call('cbind',LRS_score) %>% .[,!duplicated(colnames(.))]
-        
+
         # file <- gsub('-','_',file)
         df_LigRec <- data.frame(
           source = colnames(LRS_score_merge) %>% gsub('_.*','',.),
@@ -1129,27 +1129,27 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
           source_group = strsplit(file,'[_\\.]')[[1]][3],
           target_group = strsplit(file,'[_\\.]')[[1]][4])
       }
-      
+
     }) %>% do.call('rbind',.)
-    
+
     df_LRTGscore$pval <- NA
     for (lr in df_LRTGscore$LRpair){
       pos1 <- which(df_plot$LRpair %in% lr)
       pos2 <- which(df_LRTGscore$LRpair %in% lr)
       df_LRTGscore$pval[pos2] <- df_plot$pval[pos1]
     }
-    
+
     df <- data.frame(cellpair = paste0(df_LRTGscore$source_group,"_",df_LRTGscore$target_group),
                      LRpair = df_LRTGscore$LRpair,
                      pval = df_LRTGscore$pval,
                      count = df_LRTGscore$count)
-    
+
   }
 
   p1 <- ggplot(df, aes(x = cellpair, y = LRpair, color = pval, size = count)) +
     geom_point(pch = 16) +
     scale_color_gradient(low = "red", high = "yellow")+
-    #theme_linedraw() + 
+    #theme_linedraw() +
     #theme(panel.grid.major = element_blank()) +
     theme(axis.text.x = element_text(angle = 90, size = 10,hjust= NULL, vjust = NULL),
           axis.text.y = element_text(size = 10),
@@ -1157,13 +1157,13 @@ DrawHeatmapPlot <- function(InputDir, Sender = NULL, Receiver = NULL, outputdir,
           axis.title.y = element_blank()) +
     scale_x_discrete(position = "bottom")
   print(p1)
-  
+
   ## save
-  
+
   pdf(paste0(plotdir,ct,'_bubble_pval.pdf'),height = p_height,width = p_width)
   print(p1)
   dev.off()
-  
+
 }
 #-----------------------------------------------------------------update 2024-03-13 -------------------------------------------
 
