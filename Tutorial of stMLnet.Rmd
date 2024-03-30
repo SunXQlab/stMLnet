@@ -359,7 +359,7 @@ The multilayer signaling network displays the multilayer signaling network for a
 
 ```{r echo=TRUE, fig.height=4.5, fig.width=7}
 
-DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Malignant-Macrophage/scMLnet.rds'), 
+DrawMLnetPlot(MLnetDir = paste0(MLnetDir,'Malignant_Macrophage/scMLnet.rds'), 
               ImportDir = paste0(ImportDir,'LRTG_im_clean_Malignant-Macrophage.rds'), 
               Signal = 'COL9A2', Check = TRUE, top.n = 10, ColorDB = myColor$Keys,
               gtitle = 'COL9A2',  p_height = 4.5, p_width = 7)
