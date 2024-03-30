@@ -18,7 +18,8 @@ runstMLnet(
   expr.ct = 0.1,
   OutputDir = NULL,
   Databases = NULL,
-  SigMethod = "Fisher",
+  RecTF.method = "Fisher",
+  TFTG.method = "Fisher",
   TGList = NULL,
   LigList = NULL,
   RecList = NULL,
@@ -58,7 +59,9 @@ runstMLnet(
 
 \item{Databases}{List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).}
 
-\item{SigMethod}{Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF, TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
+\item{RecTF.method}{Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
+
+\item{TFTG.method}{Character, Denotes the strategy for filtering downstream pairing signals (TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
 
 \item{TGList}{List, The target genes of interest in groups of cells (RecClus).}
 
