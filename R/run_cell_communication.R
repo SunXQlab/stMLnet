@@ -13,7 +13,8 @@
 #' @param expr.ct Numercial, Screening threshold for high expressed gene in groups of cells. Default is 0.05.
 #' @param OutputDir Character, The output path of the currently running job where temporary and final results will be saved.
 #' @param Databases List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).
-#' @param SigMethod Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF, TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).
+#' @param RecTF.method Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).
+#' @param TFTG.method Character, Denotes the strategy for filtering downstream pairing signals (TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).
 #' @param TGList List, The target genes of interest in groups of cells (RecClus).
 #' @param LigList List, The potential ligands in groups of cells (LigClus).
 #' @param RecList List, The potential receptors in groups of cells (RecClus).
