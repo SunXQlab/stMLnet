@@ -80,6 +80,11 @@ pkgs <- c('Seurat','SeuratWrappers','reshape2','stringr','dplyr',
 for (pkg in pkgs) { library(pkg, character.only = T) }
 
 ```
+library(Seurat)
+library(tidyverse)
+library(stMLnet)
+library(parallel)
+library(ggalluvial)
 
 ### Load data
 
