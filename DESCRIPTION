@@ -10,7 +10,7 @@ Encoding: UTF-8
 LazyData: true
 Depends: 
     R (>= 2.10)
-Imports: Matrix, BiocGenerics, SeuratWrappers, reshape2, stringr,Seurat,caret,doParallel,doSNOW,snow,foreach,dplyr,ggplot2,ggalluvial,ggraph,ggsci,igraph,org.Hs.eg.db,plotrix,ranger,clusterProfiler
+Imports: Matrix, BiocGenerics, SeuratWrappers, reshape2, stringr,Seurat,caret,doParallel,doSNOW,snow,foreach,dplyr,ggplot2,ggalluvial,ggraph,ggsci,igraph,org.Hs.eg.db,plotrix,ranger
 RoxygenNote: 7.2.3
 Suggests: 
     testthat (>= 3.0.0)
