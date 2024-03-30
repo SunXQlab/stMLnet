@@ -32,7 +32,7 @@ runstMLnet <- function(
     ExprMat, AnnoMat, DistMat, LigClus = NULL, RecClus = NULL,
     Normalize = F, NormMethod = 'LogNormalze',
     logfc.ct = 0.1, pct.ct = 0.05, pval.ct = 0.05, expr.ct = 0.1,
-    OutputDir = NULL, Databases = NULL, SigMethod = 'Fisher',
+    OutputDir = NULL, Databases = NULL, RecTF.method ='Fisher',TFTG.method = 'Fisher',
     TGList = NULL, LigList = NULL, RecList = NULL,
     NCores = 6, AutoPara = TRUE, NTrees = 500, NTrys = 10,
     TreeMethod = 'variance', NodeSize = 5,  NPert = 10
@@ -58,7 +58,7 @@ runstMLnet <- function(
 
   resMLnet <- runMLnet(ExprMat, AnnoMat, LigClus = LigClus, RecClus = RecClus,
                        Normalize = Normalize, NormMethod = NormMethod,
-                       OutputDir = OutputDir, Databases = Databases, SigMethod = SigMethod,
+                       OutputDir = OutputDir, Databases = Databases, RecTF.method =RecTF.method,TFTG.method = TFTG.method,
                        logfc.ct = logfc.ct, pct.ct = pct.ct, pval.ct = pval.ct, expr.ct = expr.ct,
                        TGList=TGList, LigList=LigList, RecList=RecList)
 
