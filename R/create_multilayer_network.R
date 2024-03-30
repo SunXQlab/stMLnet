@@ -204,8 +204,8 @@ runMLnet <- function(ExprMat, AnnoMat, LigClus = NULL, RecClus = NULL,
       
       
     }
-    names(mlnets) <- paste(LigClus,RecClu,sep = "-")
-    colnames(details) <- paste(LigClus,RecClu,sep = "-")
+    names(mlnets) <- paste(LigClus,RecClu,sep = "_")
+    colnames(details) <- paste(LigClus,RecClu,sep = "_")
     rownames(details) <- c('Lig_bk','Rec_bk','target_bk',
                            "LRpair","RecTFpair","TFTGpair",
                            "Ligand", "Receptor", "TF", "Target")
