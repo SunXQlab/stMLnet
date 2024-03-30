@@ -13,7 +13,8 @@ runMLnet(
   NormMethod = "LogNormalze",
   OutputDir = NULL,
   Databases = NULL,
-  SigMethod = "Fisher",
+  RecTF.method = "Fisher",
+  TFTG.method = "Fisher",
   logfc.ct = 0.1,
   pct.ct = 0.05,
   pval.ct = 0.05,
@@ -40,7 +41,9 @@ runMLnet(
 
 \item{Databases}{List, The prior database used by running jobs for now. Databases includes Ligand-Receptor interactions (LigRec.DB), Receptor-TF interactions (RecTF.DB) and TF-Target interactions (TFTG.DB).}
 
-\item{SigMethod}{Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF, TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
+\item{RecTF.method}{Character, Denotes the strategy for filtering downstream pairing signals (Receptor-TF).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
+
+\item{TFTG.method}{Character, Denotes the strategy for filtering downstream pairing signals (TF-Target).  Available options are: Fisher(default, meaning Fisher exact test) and Search (meaning searching in database).}
 
 \item{logfc.ct}{Numercial, Screening threshold for FindMarkers in Seurat. The default setting is 0.1.}
 
