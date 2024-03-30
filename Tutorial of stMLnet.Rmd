@@ -405,15 +405,3 @@ DrawAlluviumPlot(InputDir = ImportDir, Cluster = Cluster, ColorDB = colordb,
                  Check = TRUE, top.n = 30, gtitle = gtitle, p_height = 7.5, p_width = 7)
 
 ```
-
-#### function enrichment heatmap
-
-The function enrichment heatmap displays the functional enrichment results of target genes regulated by different upstream receptors in specific cell types. The top part of the heatmap represents the enrichment results from the Gene Ontology (GO) database (biological processes), while the bottom part represents the enrichment results from the KEGG database. The horizontal axis represents different upstream receptors, while the vertical axis represents different gene sets associated with specific functions. Darker node colors indicate more significant enrichment, and larger nodes represent a higher proportion of genes enriched in the specific gene set.
-
-```{r echo=TRUE, fig.height=8, fig.width=15}
-
-Cluster <- 'Macrophage'
-gtitle <- paste0('sender-',Cluster)
-DrawEnrichmentPlot(InputDir = MLnetDir, Cluster = Cluster, top.n = 3, gtitle = gtitle, p_height = 11.5, p_width = 10.5)
-
-```
