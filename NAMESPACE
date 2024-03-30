@@ -2,7 +2,6 @@
 
 export(DrawAlluviumPlot)
 export(DrawEdgeBundlingPlot)
-export(DrawEnrichmentPlot)
 export(DrawMLnetPlot)
 export(DrawNetworkPlot)
 export(PrepareColorDB)
