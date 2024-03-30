@@ -425,7 +425,7 @@ getCellPairMLnet <- function(inputs, ligclu, recclu, databases)
   
   ## TFTG
   
-  target_gene <- rownames(GCMat)[rowMeans(GCMat)>0]
+  target_gene <- rownames(df_norm)[rowMeans(df_norm)>0]
   cat("target_background:",length(target_gene),"\n")
   target_icg <- ls_targets[[recclu]]
   if(ligclu %in% names(target_icg)){
