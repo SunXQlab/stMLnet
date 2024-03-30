@@ -56,13 +56,13 @@ getSiganlActivity <- function(ExprMat, DistMat, AnnoMat, MulNetList,
 
   }else{
 
-    cellpair <- intersect(cellpair,paste(Sender,Receiver,sep = "_"))
+    cellpair <- intersect(cellpair,paste(Sender,Receiver,sep = "-"))
     if(length(cellpair)==0) return(signalActivity)
 
     for (cp in cellpair) {
 
-      receiver <- gsub('.*_','',cp)
-      sender <- gsub('_.*','',cp)
+      receiver <- gsub('.*-','',cp)
+      sender <- gsub('-.*','',cp)
 
       MulNet <- MulNetList[[cp]]
       LRpairs <- getSiganlLinks(MulNet)
