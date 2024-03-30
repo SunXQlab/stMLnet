@@ -744,20 +744,7 @@ drawAlluviumPlot <- function(df_input, colodb){
   return(pt)
 }
 
-#' @title DrawEnrichmentPlot
-#' @description Draw Enrichment Plot
-#'
-#' @param InputDir Character, the path where the multilayer network is stored.
-#' @param Cluster Character, enrichment analysis of receptors's downstream target genes in specific cluster are shown.
-#' @param top.n Numercial, Only relevant if Check=T. Number of top enrichment term to show according to the p value.
-#' @param gtitle  Character, the title of plot.
-#' @param p_height Numercial, the height of plot.
-#' @param p_width Numercial, the width of plot.
-#'
-#' @export
-#' @import dplyr ggplot2 utils grDevices
-#' @importFrom stats na.omit
-#' @importFrom BiocGenerics toTable
+
 # DrawEnrichmentPlot <- function(InputDir, Cluster, top.n = 3, gtitle = 'Enrichment', p_height = 7.5, p_width = 7){
 #
 #   inputdir <- InputDir
