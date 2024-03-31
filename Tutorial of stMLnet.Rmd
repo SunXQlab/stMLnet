@@ -11,11 +11,10 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ### Load data
-Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists <br>of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. <br>The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
+Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists <br>of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
 
-If you download demo database and demo unprecessed inputs from [here], the demo unprocessed `unprocessed_ex_inputs` contains the `exprMat`,`annoMat`, and `locaMat`, <br>you need to calculate the `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` according to the following code before running stMLnet. <br>And the `Select_Lig_Rec_TGs` function can be found in https://github.com/SunXQlab/stMLnet-AnalysisCode/blob/main/code/Select_Lig_Rec_TGs.R
+If you download demo database and demo unprecessed inputs from [here], the demo unprocessed `unprocessed_ex_inputs` contains the `exprMat`,`annoMat`, and `locaMat`, <br>you need to calculate the `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` according to the following code before running stMLnet. And the `Select_Lig_Rec_TGs` function can be found in https://github.com/SunXQlab/stMLnet-AnalysisCode/blob/main/code/Select_Lig_Rec_TGs.R
 
-### Process data 
 ```
 library(dplyr)
 library(Seurat)
