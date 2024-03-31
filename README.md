@@ -29,21 +29,21 @@ The repository is centered around the `R` module:
           'reshape2','stringr','dplyr', # for data preprocessing
           'caret','doParallel','snow','foreach',"doSNOW","ranger", # for quantitative model
           'ggplot2','ggsci', 'plotrix','ggalluvial','ggraph','igraph' # for visualization
-)
-for (pkg in pkgs) {
-  if (!requireNamespace(pkg)) {
-    install.packages(pkg, repos = 'https://cloud.r-project.org')
-  }
-}
+               )
+     for (pkg in pkgs) {
+        if (!requireNamespace(pkg)) {
+            install.packages(pkg, repos = 'https://cloud.r-project.org')
+        }
+     }
 
-pkgs <- c('Seurat','org.Hs.eg.db')
-for (pkg in pkgs) {
-  if (!requireNamespace(pkg)) {
-    BiocManager::install(pkg)
-  }
-}
+    pkgs <- c('Seurat','org.Hs.eg.db')
+    for (pkg in pkgs) {
+      if (!requireNamespace(pkg)) {
+      BiocManager::install(pkg)
+     }
+    }
 
-remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
+   remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
       
       
 （1.2）Dock image environment
