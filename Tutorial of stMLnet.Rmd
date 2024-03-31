@@ -34,11 +34,11 @@ ex_inputs <- Select_Lig_Rec_TGs(ExprMat = de_count,
                                 AnnoMat = de_cell_type, 
                                 LocaMat = de_coords, 
                                 Databases = ex_databases, 
-                                python_path = "/usr/bin/python3", # python path for Giotto
+                                python_path = "/path/to/python.exe", # python.exe path for Giotto
                                 min.pct = 0.05, 
                                 expr.ct = 0.1, 
                                 pct.ct = 0.05)
-
+# python_path = "/path/to/python.exe" indicates the python path installed in your environment, replace it with your python.exe  path.
 ```
 
 The processed data (`ex_inputs.rda`) containing the `exprMat`,`annoMat`, `locaMat`, `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` have been deposited at [here](https://www.zenodo.org/record/8024150), which can be downloaded and used directly as the input of stMLnet analysis. 
