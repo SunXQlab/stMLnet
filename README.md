@@ -36,7 +36,7 @@ To install and use the stMLnet package, please make sure you have already instal
        pkgs <- c('Seurat','reshape2','stringr','dplyr','caret','doParallel','snow','foreach','ggplot2','ggsci','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
        for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
        
-       devtools::install_version("Seurat", version = "4.2.0", repos="https://cloud.r-project.org/")
+       # devtools::install_version("Seurat", version = "4.2.0", repos="https://cloud.r-project.org/")
        remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
 
 After building dependent environment, you can download stMLnet from github:
