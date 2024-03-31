@@ -21,8 +21,8 @@ library(Seurat)
 library(Giotto)
 
 # Load unprecess data and proir database
-load("~/cell_cell_interaction/test_R/unprocessed_ex_inputs.rda")
 load("~/cell_cell_interaction/test_R/ex_databases.rda")
+load("~/cell_cell_interaction/test_R/unprocessed_ex_inputs.rda")
 
 de_count <- ex_raw_inputs$Mat
 de_cell_type <- ex_raw_inputs$annoMat
