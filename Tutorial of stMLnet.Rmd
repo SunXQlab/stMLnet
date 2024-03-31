@@ -160,13 +160,13 @@ ex_inputs <- CalculateCandidateGeneList(ExprMat = de_count, AnnoMat = de_cell_ty
 If you download demo database and demo processed inputs from [here](https://www.zenodo.org/record/8024150), the demo processed inputs contains the `exprMat`,`annoMat`, `locaMat`, `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter`. You can start run stMLnet.
 
 ### Library
-
+```
 library(Seurat)
 library(tidyverse)
 library(stMLnet)
 library(parallel)
 library(ggalluvial)
-
+```
 ### Load data
 
 Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
