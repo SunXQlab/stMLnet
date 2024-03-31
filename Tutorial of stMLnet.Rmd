@@ -30,10 +30,14 @@ de_coords <- ex_raw_inputs$locaMat
 ```
 The `Select_Lig_Rec_TGs` function can be found in https://github.com/SunXQlab/stMLnet-AnalysisCode/blob/main/code/Select_Lig_Rec_TGs.R
 ```
-ex_inputs <- Select_Lig_Rec_TGs(ExprMat = de_count, AnnoMat = de_cell_type, 
-                                        LocaMat = de_coords, Databases = ex_databases, 
-                                        python_path = "/usr/bin/python3", min.pct = 0.05, 
-                                        expr.ct = 0.1, pct.ct = 0.05)
+ex_inputs <- Select_Lig_Rec_TGs(ExprMat = de_count, 
+                                AnnoMat = de_cell_type, 
+                                LocaMat = de_coords, 
+                                Databases = ex_databases, 
+                                python_path = "/usr/bin/python3", # python path for Giotto
+                                min.pct = 0.05, 
+                                expr.ct = 0.1, 
+                                pct.ct = 0.05)
 
 ```
 
