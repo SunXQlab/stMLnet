@@ -42,6 +42,8 @@ The repository is centered around the `R` module:
       BiocManager::install(pkg)
      }
     }
+  
+   
    remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
       
 Or
