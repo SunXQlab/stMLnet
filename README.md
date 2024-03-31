@@ -21,8 +21,8 @@ The repository is centered around the `R` module:
 
 ## Usage
 
-To install and use the stMLnet package, please make sure you have already installed related dependencies:
-
+（1）Install related dependencies:
+      （1.1）
        # Check if the following dependencies are installed.
        pkgs <- c('Seurat','Giotto','reshape2','stringr','dplyr', # for data preprocessing
                         'caret','doParallel','snow','foreach', # for quantitative model
@@ -38,8 +38,21 @@ To install and use the stMLnet package, please make sure you have already instal
        
        # devtools::install_version("Seurat", version = "4.2.0", repos="https://cloud.r-project.org/")
        remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
+      （1.2）
+       If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
 
-After building dependent environment, you can download stMLnet from github:
+       # Bash
+       # built a docker image
+       # ensure that dockerfile and postInstall are in the same path
+       docker build -f Dockerfile -t stMLnetEnv:0.1 .
+       # Run docker image
+       docker run -it stMLnetEnv:0.1 /bin/bash
+
+(2) Install stMLnet package
+
+ After building dependent environment, you can 
+
+(2.1) download stMLnet from github:
 
        git clone https://github.com/SunXQlab/stMLnet.git
        
@@ -48,19 +61,11 @@ and then install stMLnet from local:
        install.packages("path/to/stMLnet/stMLnet_0.1.2.tar.gz", repos = NULL, type = "source")
        library(stMLnet)
        
-or you can directly install stMLnet from github:
+Or (2.2) you can directly install stMLnet from github:
 
        devtools::install_github("SunXQlab/stMLnet")
        library(stMLnet)
 
-If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
-
-       # Bash
-       # built a docker image
-       # ensure that dockerfile and postInstall are in the same path
-       docker build -f Dockerfile -t stMLnetEnv:0.1 .
-       # Run docker image
-       docker run -it stMLnetEnv:0.1 /bin/bash
 
 To learn how to use this tool, check [Tutorial of stMLnet.Rmd](https://github.com/SunXQlab/stMLnet/blob/main/Tutorial%20of%20stMLnet.Rmd). This tutorial shows the installation and application of stMLnet in the demo dataset, which can be download from [here](https://www.zenodo.org/record/8024150). It will take about 15 mins to run this demo (excluding environment installation) mainly depending on the parameter setting in the quantitative analysis step.
 
