@@ -42,7 +42,7 @@ runstMLnet <- function(
   ## Step0 prepare
 
   clusters <- ex_inputs$annoMat$Cluster %>% unique() %>% as.character()
-  exprMat.Impute <- runImputation(exprMat = ex_inputs$exprMat)
+  # exprMat.Impute <- runImputation(exprMat = ex_inputs$exprMat)
 
   if(is.null(OutputDir)){
 
@@ -80,7 +80,7 @@ runstMLnet <- function(
   for (cluster in clusters) {
 
     Sender <- clusters[clusters!=cluster]
-    resSigActList[[cluster]] <- getSiganlActivity(ExprMat = exprMat.Impute,
+    resSigActList[[cluster]] <- getSiganlActivity(ExprMat = ex_inputs$exprMat,
                                                   DistMat = DistMat,
                                                   AnnoMat = AnnoMat,
                                                   MulNetList = ex_mulnetlist,
