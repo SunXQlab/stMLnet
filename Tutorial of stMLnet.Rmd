@@ -1,7 +1,7 @@
 ---
 title: "Tutorial of stMLnet"
-author: "cjy"
-date: "2023/5/31"
+author: "cjy, yll"
+date: "2024/3/31"
 output:
   html_document: default
   pdf_document: default
@@ -13,12 +13,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Load data
 Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists <br>of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
 
-If you download demo database and demo unprecessed inputs from [here], the demo unprocessed `unprocessed_ex_inputs` contains the `exprMat`,`annoMat`, and `locaMat`, <br>you need to calculate the `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` according to the following code before running stMLnet. And the `Select_Lig_Rec_TGs` function can be found in https://github.com/SunXQlab/stMLnet-AnalysisCode/blob/main/code/Select_Lig_Rec_TGs.R
+If you download demo database and demo data (unprecessed_ex_inputs.rda) from [here](https://www.zenodo.org/record/8024150), the demo data `unprocessed_ex_inputs` contains the `exprMat`,`annoMat`, and `locaMat`, you need to calculate the `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` according to the following code before running stMLnet.
 
 ```
 library(dplyr)
 library(Seurat)
-library(Giotto)
+library(Giotto)  # remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
 
 # Load unprecess data and proir database
 load("~/cell_cell_interaction/test_R/ex_databases.rda")
@@ -27,14 +27,24 @@ load("~/cell_cell_interaction/test_R/unprocessed_ex_inputs.rda")
 de_count <- ex_raw_inputs$Mat
 de_cell_type <- ex_raw_inputs$annoMat
 de_coords <- ex_raw_inputs$locaMat
-
+```
+The `Select_Lig_Rec_TGs` function can be found in https://github.com/SunXQlab/stMLnet-AnalysisCode/blob/main/code/Select_Lig_Rec_TGs.R
+```
 ex_inputs <- Select_Lig_Rec_TGs(ExprMat = de_count, AnnoMat = de_cell_type, 
                                         LocaMat = de_coords, Databases = ex_databases, 
                                         python_path = "/usr/bin/python3", min.pct = 0.05, 
                                         expr.ct = 0.1, pct.ct = 0.05)
 
 ```
-If you download demo database and demo processed inputs from [here](https://www.zenodo.org/record/8024150), the demo processed inputs contains the `exprMat`,`annoMat`, `locaMat`, `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter`. You can start run stMLnet.
+
+The processed data (`ex_inputs.rda`) containing the `exprMat`,`annoMat`, `locaMat`, `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` can be downloaded from [here](https://www.zenodo.org/record/8024150), which can be used directly as the input of stMLnet analysis. 
+```
+
+load('/path/to/data/ex_database.rda')
+str(ex_databases,max.level=2)
+load('/path/to/data/ex_inputs.rda')
+str(ex_inputs,max.level=2)
+```
 
 ### Library
 ```
@@ -43,35 +53,6 @@ library(tidyverse)
 library(stMLnet)
 library(parallel)
 library(ggalluvial)
-```
-### Load data
-
-Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `RecTF.DB`, and `TFTG.DB`. Each sublist consists of three columns: `source`, `target`, and `score`. In the aforementioned sublists, the `source` column represents signaling molecules such as ligands, receptors, and transcription factors, while the `target` column represents signaling molecules such as receptors, transcription factors, and target genes. The `score` column in `LigRec.DB` and `TFTG.DB` indicates the frequency of interactions occurring in the collected database, while the `score` column in `RecTF.DB` represents the predicted probabilities of interactions occurring in the collected database.
-
-To obtain demo database and demo inputs, please download from [here](https://www.zenodo.org/record/8024150).
-
-```
-
-load('/path/to/data/ex_database.rda')
-str(ex_databases,max.level=2)
-
-```
-Load demo data `ex_inputs`, which includes:
-
-    `exprMat`: Normalized expression matrix.
-    `annoMat`: Cell type annotation matrix.
-    `locaMat`: Spatial location information matrix.
-    `ligs_of_inter`: Potential ligand lists for different cell types.
-    `recs_of_inter`: Potential receptor lists for different cell types.
-    `tgs_of_inter`: Potential target gene lists for different cell types.
-
-The `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` can be automatically computed based on the aforementioned three input matrixes.
-
-```{r echo=TRUE}
-
-load('/path/to/data/ex_inputs.rda')
-str(ex_inputs,max.level=2)
-
 ```
 
 ### create mulityayer network
