@@ -38,7 +38,8 @@ ex_inputs <- Select_Lig_Rec_TGs(ExprMat = de_count,
                                 min.pct = 0.05, 
                                 expr.ct = 0.1, 
                                 pct.ct = 0.05)
-# python_path = "/path/to/python.exe" indicates the python path installed in your environment, replace it with your python.exe  path.
+# Windows system: python_path = "/path/to/python.exe" indicates the python path installed in your environment, replace it with your python.exe path.
+# Mac system: python_path ="/path/to/python" indicates the python path installed in your environment, replace it with your python.exe path.
 ```
 
 The processed data (`ex_inputs.rda`) containing the `exprMat`,`annoMat`, `locaMat`, `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` have been deposited at [here](https://www.zenodo.org/record/8024150), which can be downloaded and used directly as the input of stMLnet analysis. 
