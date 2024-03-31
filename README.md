@@ -27,13 +27,13 @@ To install and use the stMLnet package, please make sure you have already instal
        pkgs <- c('Seurat','Giotto','reshape2','stringr','dplyr', # for data preprocessing
                         'caret','doParallel','snow','foreach', # for quantitative model
                          'ggplot2','ggsci','org.Hs.eg.db', 'plotrix','ggalluvial','ggraph','igraph' # for visualization
-                         )
+                         'R.utils', 'doSNOW', 'ranger')
        for (pkg in pkgs) {
          if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
        }
        
        # Installing related dependencies.
-       pkgs <- c('Seurat','reshape2','stringr','dplyr','caret','doParallel','snow','foreach','ggplot2','ggsci','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
+       pkgs <- c('Seurat','reshape2','stringr','dplyr','caret','doParallel','snow','foreach','ggplot2','ggsci','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph','R.utils', 'doSNOW', 'ranger')
        for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
        
        # devtools::install_version("Seurat", version = "4.2.0", repos="https://cloud.r-project.org/")
