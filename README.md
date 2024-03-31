@@ -25,7 +25,7 @@ The repository is centered around the `R` module:
       
 （1.1）Manual installation
       
-       pkgs <- c("R.utils",
+     pkgs <- c("R.utils",
           'reshape2','stringr','dplyr', # for data preprocessing
           'caret','doParallel','snow','foreach',"doSNOW","ranger", # for quantitative model
           'ggplot2','ggsci', 'plotrix','ggalluvial','ggraph','igraph' # for visualization
@@ -42,9 +42,8 @@ The repository is centered around the `R` module:
       BiocManager::install(pkg)
      }
     }
-  
-   
-   remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
+    
+    remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
       
 Or
 
