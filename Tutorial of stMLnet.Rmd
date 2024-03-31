@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Library
 
-Install the dependency R package: Seurat, SeuratWrappers, reshape2, stringr, dplyr
+Install the dependency R package: Seurat, reshape2, stringr, dplyr
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
@@ -23,7 +23,7 @@ Install the dependency R package: Seurat, SeuratWrappers, reshape2, stringr, dpl
 # pkgs <- c('reshape2','stringr','dplyr')
 # for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
 
-pkgs <- c('Seurat','SeuratWrappers','reshape2','stringr','dplyr')
+pkgs <- c('Seurat','reshape2','stringr','dplyr')
 for (pkg in pkgs) {
   if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
 }
@@ -74,7 +74,7 @@ Load environment
 
 ```{r include=FALSE}
 
-pkgs <- c('Seurat','SeuratWrappers','reshape2','stringr','dplyr',
+pkgs <- c('Seurat','reshape2','stringr','dplyr',
           'caret','doParallel','doSNOW','foreach','ranger', 'stMLnet',
           'ggplot2','ggsci','clusterProfiler','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph')
 for (pkg in pkgs) { library(pkg, character.only = T) }
