@@ -173,7 +173,7 @@ Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `
 
 To obtain demo database and demo inputs, please download from [here](https://www.zenodo.org/record/8024150).
 
-```{r echo=TRUE}
+```
 
 load('/path/to/data/ex_database.rda')
 str(ex_databases,max.level=2)
