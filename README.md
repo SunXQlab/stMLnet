@@ -45,10 +45,11 @@ The repository is centered around the `R` module:
 
    remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
       
-      
+Or, alternatively
+
 （1.2）Dock image environment
 
-Alternatively, if you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
+If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
 
        # Bash
        # built a docker image
