@@ -41,7 +41,10 @@ ex_inputs <- Select_Lig_Rec_TGs(ExprMat = de_count,
 
 ```
 
-The processed data (`ex_inputs.rda`) containing the `exprMat`,`annoMat`, `locaMat`, `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` can be downloaded from [here](https://www.zenodo.org/record/8024150), which can be used directly as the input of stMLnet analysis. 
+The processed data (`ex_inputs.rda`) containing the `exprMat`,`annoMat`, `locaMat`, `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` have been deposited at [here](https://www.zenodo.org/record/8024150), which can be downloaded and used directly as the input of stMLnet analysis. 
+
+The following procedues illustrate how to use the above inputs to run stMLnet.
+
 ```
 
 load('/path/to/data/ex_database.rda')
