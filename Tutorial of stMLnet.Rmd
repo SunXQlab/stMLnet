@@ -25,10 +25,10 @@ gc()
 
 CalculateCandidateGeneList <- function(ExprMat, AnnoMat, LocaMat, Databases, python_path, min.pct, expr.ct, pct.ct){
   
-  ## workdir
+  # workdir
   my_python_path = python_path
   myinstr = createGiottoInstructions(python_path = my_python_path)
-  ### Create a Giotto object 
+  # Create a Giotto object 
   gio_bc <- createGiottoObject(raw_exprs = de_count,
                                spatial_locs = de_coords,
                                instructions = myinstr)
@@ -37,19 +37,19 @@ CalculateCandidateGeneList <- function(ExprMat, AnnoMat, LocaMat, Databases, pyt
                             new_metadata = de_cell_type$Cluster, 
                             vector_name = "celltype")
   
-  ### normalize
+  # normalize
   gio_bc <- normalizeGiotto(gio_bc)
   gio_bc <- addStatistics(gobject = gio_bc)
   
-  ### create a spatial Delaunay network (default)
+  # create a spatial Delaunay network (default)
   gio_bc = createSpatialNetwork(gobject = gio_bc, method = "Delaunay")
   
-  ### select top 25th highest expressing genes
+  # select top 25th highest expressing genes
   gene_metadata <- fDataDT(gio_bc)
   lapply(seq(0.1,1,0.05), quantile, x = gene_metadata$mean_expr_det, na.rm = T) %>% unlist()
   high_expressed_genes = gene_metadata[mean_expr_det > 0.75]$gene_ID  # mean_expr_det > 0.75
   
-  ### identify ICGs
+  # identify ICGs
   CPGscoresHighGenes =  findICG(gobject = gio_bc, 
                                 selected_genes = high_expressed_genes,
                                 spatial_network_name = 'Delaunay_network',
@@ -59,7 +59,7 @@ CalculateCandidateGeneList <- function(ExprMat, AnnoMat, LocaMat, Databases, pyt
                                 nr_permutations = 500,
                                 do_parallel = T, cores = 6)
   
-  ### filter ICGs
+  # filter ICGs
   CPGscoresFilt = filterICG(CPGscoresHighGenes, direction = "both")
   table(CPGscoresFilt$CPGscores$spec_int[CPGscoresFilt$CPGscores$cell_type=="Malignant"])
   ICGs_list = lapply(unique(CPGscoresFilt$CPGscores$cell_type), function(x){
