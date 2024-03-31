@@ -24,7 +24,7 @@ The repository is centered around the `R` module:
 To install and use the stMLnet package, please make sure you have already installed related dependencies:
 
        # Check if the following dependencies are installed.
-       pkgs <- c('Seurat', SeuratWrappers','Giotto','reshape2','stringr','dplyr', # for data preprocessing
+       pkgs <- c('Seurat','Giotto','reshape2','stringr','dplyr', # for data preprocessing
                         'caret','doParallel','snow','foreach', # for quantitative model
                          'ggplot2','ggsci','org.Hs.eg.db', 'plotrix','ggalluvial','ggraph','igraph' # for visualization
                          )
