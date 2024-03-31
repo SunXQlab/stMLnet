@@ -212,30 +212,3 @@ getSiganlLinks <- function(mulNet)
   return(LRTG_link)
 }
 
-#' @title getCPSiganlActivity
-#' @description get The imputation of expression matrix using the ALRA method in Seurat
-#'
-#' @param exprMat Matrix, The expression matrix with rows as genes (gene symbols) and columns as cells.
-#' @param use.seed Logical, Whether to set a seed.
-#' @param seed Only relevant if use.seed=T, set the seed for the random process.
-#'
-#' @return Matrix, the imputed expression matrix.
-#' @export
-#'
-#' @import dplyr Seurat
-#' @importFrom SeuratWrappers RunALRA
-runImputation <- function(exprMat, use.seed = TRUE, seed = 4321)
-{
-
-  ## main
-
-  expr.Impute <- CreateSeuratObject(exprMat,verbose=F)
-  cat('Using imputation method ALRA wrapped in Seurat\n')
-  if(use.seed) set.seed(seed)
-  expr.Impute <- suppressMessages(RunALRA(expr.Impute))
-  exprMat.Impute <- expr.Impute@assays$alra@data
-
-  return(exprMat.Impute)
-
-}
-
