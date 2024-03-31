@@ -107,7 +107,7 @@ Load demo data `ex_inputs`, which includes:
     `recs_of_inter`: Potential receptor lists for different cell types.
     `tgs_of_inter`: Potential target gene lists for different cell types.
 
-The `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` can be automatically computed based on the aforementioned three input matrices.
+The `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` can be automatically computed based on the aforementioned three input matrixes.
 
 ```{r echo=TRUE}
 
