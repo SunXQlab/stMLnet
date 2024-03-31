@@ -22,7 +22,8 @@ The repository is centered around the `R` module:
 ## Usage
 
 （1）Install related dependencies:
-      （1.1）
+      
+（1.1）
       
        # Check if the following dependencies are installed.
        pkgs <- c('Seurat','Giotto','reshape2','stringr','dplyr', # for data preprocessing
@@ -41,7 +42,7 @@ The repository is centered around the `R` module:
        remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
       
       
-      （1.2）If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
+（1.2）If you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
 
        # Bash
        # built a docker image
