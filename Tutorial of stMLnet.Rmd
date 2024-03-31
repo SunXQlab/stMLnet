@@ -55,7 +55,7 @@ library(parallel)
 library(ggalluvial)
 ```
 
-### create mulityayer network
+### create mulitlayer network
 
 Analyze the mulityayer signaling network between different cell pairs in the breast cancer microenvironment and set the current directory as the output result saving path.
 
