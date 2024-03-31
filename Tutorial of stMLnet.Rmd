@@ -196,13 +196,12 @@ str(ex_mulnetlist[1:3], max.level = 2)
 Retrieve the upstream pair-wise signaling activity and downstream target gene expression levels based on the cell pair multilayer signaling network.
 
 ```{r results='hide'}
-exprMat <- ex_inputs$exprMat
 clusters <- ex_inputs$annoMat$Cluster %>% unique() %>% as.character()
 resSigActList <- list()
 for (cluster in clusters) {
 
   Sender <- clusters[clusters!=cluster]
-  resSigActList[[cluster]] <- getSiganlActivity(ExprMat = exprMat,
+  resSigActList[[cluster]] <- getSiganlActivity(ExprMat = ex_inputs$exprMat,
                                                 DistMat = DistMat,
                                                 AnnoMat = ex_inputs$annoMat,
                                                 MulNetList = ex_mulnetlist,
