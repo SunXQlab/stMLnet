@@ -43,6 +43,7 @@ The repository is centered around the `R` module:
       
       
 （1.2）Dock image environment
+
 Alternatively, if you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
 
        # Bash
@@ -65,7 +66,8 @@ and then install stMLnet from local:
        install.packages("path/to/stMLnet/stMLnet_0.1.2.tar.gz", repos = NULL, type = "source")
        library(stMLnet)
        
-Or 
+Or
+
 (2.2) you can directly install stMLnet from github:
 
        devtools::install_github("SunXQlab/stMLnet")
