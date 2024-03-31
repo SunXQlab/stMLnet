@@ -23,6 +23,7 @@ The repository is centered around the `R` module:
 
 （1）Install related dependencies:
       （1.1）
+      
        # Check if the following dependencies are installed.
        pkgs <- c('Seurat','Giotto','reshape2','stringr','dplyr', # for data preprocessing
                         'caret','doParallel','snow','foreach', # for quantitative model
@@ -61,7 +62,8 @@ and then install stMLnet from local:
        install.packages("path/to/stMLnet/stMLnet_0.1.2.tar.gz", repos = NULL, type = "source")
        library(stMLnet)
        
-Or (2.2) you can directly install stMLnet from github:
+Or 
+(2.2) you can directly install stMLnet from github:
 
        devtools::install_github("SunXQlab/stMLnet")
        library(stMLnet)
