@@ -25,21 +25,25 @@ The repository is centered around the `R` module:
       
 （1.1）Manual installation
       
-       # Check if the following dependencies are installed.
-       pkgs <- c('Seurat','Giotto','reshape2','stringr','dplyr', # for data preprocessing
-                        'caret','doParallel','snow','foreach', # for quantitative model
-                         'ggplot2','ggsci','org.Hs.eg.db', 'plotrix','ggalluvial','ggraph','igraph' # for visualization
-                         'R.utils', 'doSNOW', 'ranger')
-       for (pkg in pkgs) {
-         if (!requireNamespace(pkg)) { cat(paste0('please install and library the package: ',pkg,'\n')) }
-       }
-       
-       # Installing related dependencies.
-       pkgs <- c('Seurat','reshape2','stringr','dplyr','caret','doParallel','snow','foreach','ggplot2','ggsci','org.Hs.eg.db','plotrix','ggalluvial','ggraph','igraph','R.utils', 'doSNOW', 'ranger')
-       for (pkg in pkgs) {install.packages(pkg, repos = 'https://cloud.r-project.org')}
-       
-       # devtools::install_version("Seurat", version = "4.2.0", repos="https://cloud.r-project.org/")
-       remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
+       pkgs <- c("R.utils",
+          'reshape2','stringr','dplyr', # for data preprocessing
+          'caret','doParallel','snow','foreach',"doSNOW","ranger", # for quantitative model
+          'ggplot2','ggsci', 'plotrix','ggalluvial','ggraph','igraph' # for visualization
+)
+for (pkg in pkgs) {
+  if (!requireNamespace(pkg)) {
+    install.packages(pkg, repos = 'https://cloud.r-project.org')
+  }
+}
+
+pkgs <- c('Seurat','org.Hs.eg.db')
+for (pkg in pkgs) {
+  if (!requireNamespace(pkg)) {
+    BiocManager::install(pkg)
+  }
+}
+
+remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
       
       
 （1.2）Dock image environment
