@@ -637,7 +637,7 @@ getTFTG <- function(TFTG.DB, target.degs, target.genes, method = c('Fisher','Sea
 {
   
   if(method=='Search'){
-    TFTGTable <- getTFTGSearch(TFTG.DB, target.degs)
+    TFTGTable <- getTFTGSearch(TFTG.DB, target.degs, target.genes)
   }else if(method=='Fisher'){
     TFTGTable <- getTFTGFisher(TFTG.DB, target.degs, target.genes)
   }
@@ -645,7 +645,7 @@ getTFTG <- function(TFTG.DB, target.degs, target.genes, method = c('Fisher','Sea
   return(TFTGTable)
 }
 
-getTFTGSearch <- function(TFTG.DB, target.degs)
+getTFTGSearch <- function(TFTG.DB, target.degs, target.genes)
 {
   
   require(dplyr)
