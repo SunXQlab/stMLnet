@@ -666,7 +666,8 @@ getTFTGSearch <- function(TFTG.DB, target.degs)
   TargetHighGene <- intersect(TargetGene,target.degs)
   
   # get potential activated TFTG pairs
-  TFTGList <- paste(TFGene, TargetHighGene,sep = "_")
+  TFGene <- TFGene[TFGene %in% target.genes]
+  TFTGList <- paste(rep(TFGene,each = length(TargetHighGene)), TargetHighGene,sep = "_")
   TFTGList <- intersect(TFTGList,TotTFTG)
   
   # check result
