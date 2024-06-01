@@ -92,7 +92,7 @@ All the examples and the reproducibility codes for the plots in the paper could 
 
 See detials therein.
 
-We also provide a web-based application to demonstrate the functionality and visualization of stMLnet, available at www.stmlnet.top/net.
+We also provide a web-based application to demonstrate the functionality and visualization of stMLnet, available at http://net.stmlnet.top.
 
 ## Contact
 If you have questions or suggestions for imrpoving stMLnet, please contact Xiaoqiang Sun via sunxq6@mail.sysu.edu.cn.
