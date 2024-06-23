@@ -22,8 +22,8 @@ CheckFeedbackLoop <- function(celltypes, workdir, savepath, cts_of_interest){
       if(cp1 %in% list.files(paste0(workdir,'/runscMLnet/')) & cp2 %in% list.files(paste0(workdir,'/runscMLnet/'))){
         
         cat('check in ',cp1,' and ',cp2,'\n')
-        mlnet1 <- readRDS(paste0(workdir,cp1,'/scMLnet.rds'))
-        mlnet2 <- readRDS(paste0(workdir,cp2,'/scMLnet.rds'))
+        mlnet1 <- readRDS(paste0(workdir,'/runscMLnet/', cp1,'/scMLnet.rds'))
+        mlnet2 <- readRDS(paste0(workdir,'/runscMLnet/',cp2,'/scMLnet.rds'))
         
         ct2_tgs <- unique(mlnet1$TFTar$target)
         ct1_tgs <- unique(mlnet2$TFTar$target)
@@ -52,8 +52,8 @@ CheckFeedbackLoop <- function(celltypes, workdir, savepath, cts_of_interest){
       ct1 <- cp_of_inter$ct1[k]
       ct2 <- cp_of_inter$ct2[k]
       
-      mlnet1 <- readRDS(paste0(workdir,paste(ct1,ct2,sep = '_'),'/scMLnet.rds'))
-      mlnet2 <- readRDS(paste0(workdir,paste(ct2,ct1,sep = '_'),'/scMLnet.rds'))
+      mlnet1 <- readRDS(paste0(workdir,'/runscMLnet/',paste(ct1,ct2,sep = '_'),'/scMLnet.rds'))
+      mlnet2 <- readRDS(paste0(workdir,'/runscMLnet/',paste(ct2,ct1,sep = '_'),'/scMLnet.rds'))
       
       ct2_tgs <- unique(mlnet1$TFTar$target)
       ct1_tgs <- unique(mlnet2$TFTar$target)
