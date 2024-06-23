@@ -156,6 +156,7 @@ getCPSiganlActivity <- function(exprMat, distMat, annoMat,
 
   ## distance matrix between sender and receiver
   distMat = distMat[sendBars, receBars]
+  diag(distMat) <- 1
   distMatReci = 1/distMat
 
   ## signal (LRpairs) activity
