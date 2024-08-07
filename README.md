@@ -21,9 +21,9 @@ The repository is centered around the `R` module:
 
 ## Usage
 
-（1）Install related dependencies:
+(1) Install related dependencies:
       
-（1.1）Manual installation
+(1.1) Manual installation
       
      pkgs <- c("R.utils",
           'reshape2','stringr','dplyr', # for data preprocessing
@@ -45,7 +45,7 @@ The repository is centered around the `R` module:
           
 Or
 
-（1.2）Dock image environment
+(1.2) Dock image environment
 
 Alternatively, if you have problems installing the environment manually, you can also choose to install the dependent environment via dockfile:
 
