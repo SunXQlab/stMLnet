@@ -16,6 +16,7 @@ Load demo database `ex_databases`, which includes three sublists: `LigRec.DB`, `
 If you download demo database and demo data (unprecessed_ex_inputs.rda) from [here](https://zenodo.org/records/10901775), the demo data `unprocessed_ex_inputs` contains the `exprMat`,`annoMat`, and `locaMat`, you need to calculate the `ligs_of_inter`, `recs_of_inter`, and `tgs_of_inter` according to the following code before running stMLnet.
 
 ```
+
 library(dplyr)
 library(Seurat)
 library(Giotto)  # remotes::install_github("drieslab/Giotto",  ref="v1.1.0")
