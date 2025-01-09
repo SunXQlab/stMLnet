@@ -1169,6 +1169,289 @@ DrawAlluviumMLnetPlot <- function(MLnetDir = MLnetDir,ImportDir= ImportDir, Send
   
 }
 
+#' @title DrawBubblePlot
+#' @description Draw Bubble Plot of LR signaling score
+#'
+#' @param respath Character, the pathway where the all result is stored.
+#' @param outputdir Character, the pathway to store the result .
+#' @param p_height Numercial, the height of plot.
+#' @param p_width Numercial, the width of plot.
+#'
+#' @export
+#' @import dplyr ggplot2 grDevices ggsci
+#' @importFrom stats sd
+DrawBubblePlot <- function(respath,outputdir,ct,p_width,p_height){
+  
+  inputdir0 <- paste0(res_path,'getPIM/')
+  files <- list.files(inputdir0)[grep('_im_',list.files(inputdir0))]
+  CPs <- gsub('LRTG_im_clean_|LRTG_pim_clean_|\\.rds','',files)
+  
+  
+  inputdir <- paste0(res_path,'runModel/')
+  files = list.files(inputdir)
+  files <- files[lapply(CPs, function(cp){grep(cp,files)}) %>% unlist() %>% unique()]
+  files = files[grep(paste0('_',ct[1],'.rds',"|",'_',ct[2],'.rds'),files)]
+  
+  df_LRTGscore = lapply(files, function(file){
+    
+    print(file)
+    LRS_score = readRDS(paste0(inputdir,file))[[1]]
+    LRS_score_merge = do.call('cbind',LRS_score) %>% .[,!duplicated(colnames(.))]
+    
+    # file <- gsub('-','_',file)
+    df_LigRec <- data.frame(
+      source = colnames(LRS_score_merge) %>% gsub('_.*','',.),
+      target = colnames(LRS_score_merge) %>% gsub('.*_','',.),
+      LRpair = colnames(LRS_score_merge),
+      count = colMeans(LRS_score_merge),
+      source_group = strsplit(file,'[_\\.]')[[1]][3],
+      target_group = strsplit(file,'[_\\.]')[[1]][4]
+    )
+    
+  }) %>% do.call('rbind',.)
+  df_LRTGscore$cellpair <- paste0(df_LRTGscore$source_group,"->",df_LRTGscore$target_group)
+  df_LRTGscore$LRpair <- gsub("_","-",df_LRTGscore$LRpair)
+  
+  
+  bubble_plot_LRscore(df_LRTGscore,outputdir,p_width,p_height,save_name=paste0(ct[1],"_",ct[2]))
+  
+}
+
+bubble_plot_LRscore <- function(res,wd_path,p_width,p_height,save_name){
+  
+  df_LRTGscore = res
+  n.colors = 10
+  color.heatmap = c("Spectral")  # ,"viridis"
+  direction = -1
+  if (length(color.heatmap) == 1) {
+    color.use <- tryCatch({
+      RColorBrewer::brewer.pal(n = n.colors, name = color.heatmap)
+    }, error = function(e) {
+      (scales::viridis_pal(option = color.heatmap, direction = -1))(n.colors)
+    })
+  }else {
+    color.use <- color.heatmap
+  }
+  if (direction == -1) {
+    color.use <- rev(color.use)
+  }
+  
+  g <- ggplot(df_LRTGscore, aes(x = cellpair, y = LRpair,size=count,color = count)) +
+    geom_point() +  # Color points by 'count'
+    # scale_color_viridis(option="B") +  # Apply viridis color scale (optional)
+    scale_colour_gradientn(colors = colorRampPalette(color.use)(99), 
+                           na.value = "white", limits = c(quantile(df_LRTGscore$count,0, na.rm = T), 
+                                                          quantile(df_LRTGscore$count, 1, na.rm = T)), 
+                           breaks = c(quantile(df_LRTGscore$count, 0, na.rm = T), 
+                                      quantile(df_LRTGscore$count,1, na.rm = T)), labels = c("min", "max")) + 
+    guides(color = guide_colourbar(barwidth = 0.5, title = "LR signaling score"))+
+    theme_linedraw() + 
+    theme(panel.grid.major = element_blank())+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))+  # Rotate x-axis labels
+    geom_vline(xintercept = seq(1.5, length(unique(df_LRTGscore$cellpair)) - 
+                                  0.5, 1), lwd = 0.1, colour = "grey90")+
+    geom_hline(yintercept = seq(1.5, length(unique(df_LRTGscore$LRpair)) - 
+                                  0.5, 1), lwd = 0.1, colour = "grey90")
+  
+  plotdir = paste0(wd_path,'/visualize/')
+  dir.create(plotdir,recursive = T)
+  
+  pdf(paste0(plotdir,"bubble_LRsignalingscore_",save_name,".pdf"),
+      width = width,height = height)
+  print(g)
+  dev.off()
+  
+}
+
+#' @title DrawHeatmapNetworkPlot
+#' @description Draw Network Plot
+#'
+#' @param InputDir Character, the path where the signals importance is stored.
+#' @param outputdir Character, the pathway to save the result .
+#' @param Metric Character, indicating the metrics of edges in Network plot. Available options are: n_LRs, n_TGs, IM,  IM_norm,  mean_IM, mean_IM_norm
+#' @param mycolor_ct Vector, indicating the colors of cell types.
+#' @param gtitle Character, the title of plot.
+#' @param p_width Numercial, the width of plot.
+#' @param p_height Numercial, the height of plot.
+#'
+#' @export
+#' @import dplyr graphics grDevices CellChat ComplexHeatmap
+#'
+DrawHeatmapNetworkPlot <- function(InputDir,OutputDir, Metric, mycolor_ct,p_width,p_height){
+  suppressMessages(library(CellChat))
+  suppressMessages(library(ComplexHeatmap))
+  
+  inputdir <- InputDir
+  key <- Metric
+  
+  plotdir <- paste0(OutputDir,"/visualize/NetworkPlot/")
+  dir.create(plotdir, recursive = T, showWarnings = F)
+  
+  files <- list.files(inputdir)[grep("LRTG_im_clean_", list.files(inputdir))]
+  
+  LRTG_detail <- lapply(files, function(f){
+    
+    LRTG_im <- readRDS(paste0(inputdir,f))
+    LRTG_im <- na.omit(LRTG_im)
+    c(length(unique(LRTG_im$LRpair)),length(unique(LRTG_im$Target)),
+      sum(LRTG_im$IM),sum(LRTG_im$im_norm),
+      sum(LRTG_im$IM)/nrow(LRTG_im),sum(LRTG_im$im_norm)/nrow(LRTG_im))
+    
+  }) %>% do.call('rbind',.) %>% as.data.frame()
+  df_cellpair <- gsub('LRTG_im_clean_|.rds','',files) %>% strsplit(.,"_") %>% do.call('rbind',.) %>% as.data.frame()
+  LRTG_detail <- cbind(df_cellpair,LRTG_detail)
+  LRTG_detail <- na.omit(LRTG_detail)
+  colnames(LRTG_detail) <- c('cell_from','cell_to','n_LRs','n_TGs','IM','IM_norm','mean_IM','mean_IM_norm')
+  
+  
+  celltype = unique(c(LRTG_detail$cell_from,LRTG_detail$cell_to))
+  LRTG_detail[[key]] <- as.numeric(LRTG_detail[[key]])
+  
+  tmeTab0 <- LRTG_detail[,c('cell_from','cell_to',key)] 
+  
+  mat2 <- matrix(0,nrow = length(celltype),ncol = length(celltype))
+  rownames(mat2) <- celltype
+  colnames(mat2) <- celltype
+  for (i in 1:nrow(tmeTab0)){
+    c1 <- tmeTab0$cell_from[i]
+    c2 <- tmeTab0$cell_to[i]
+    val <- tmeTab0$n_LRs[i]
+    mat2[c1,c2] <- val
+    
+  }
+  
+  pt <- Heatmap_plot_Network(net = mat2,key=key,color.use=mycolor_ct[rownames(mat2)], color.heatmap = "Reds")
+  
+  pdf(paste0(plotdir,"NetwrokHeatmap_",key,".pdf"),height = p_height,width = p_width)
+  print(pt)
+  dev.off()
+  
+}
+
+Heatmap_plot_Network <- function(net = tmeTab,
+                                 key=NULL,
+                                 comparison = c(1, 2),
+                                 color.use = NULL,
+                                 color.heatmap = c("#2166ac", "#b2182b"),
+                                 title.name = NULL,
+                                 width = NULL,
+                                 height = NULL,
+                                 font.size = 8, 
+                                 font.size.title = 10,
+                                 cluster.rows = FALSE,
+                                 cluster.cols = FALSE,
+                                 sources.use = NULL,
+                                 targets.use = NULL,
+                                 remove.isolate = FALSE,
+                                 row.show = NULL,
+                                 col.show = NULL){
+  
+  if (key=='n_LRs'){
+    legend.name <- "Number"
+    title.name = paste0(key, " number")
+  }else if(key=='IM'){
+    legend.name <- "Score"
+    title.name = paste0(key, " Score")
+  }else if(key=='n_TGs'){
+    legend.name <- "Number"
+    title.name = paste0(key, " number")
+  }else if(key=='IM_norm'){
+    legend.name <- "Score"
+    title.name = paste0(key, " Score")
+  }else if(key=='mean_IM'){
+    legend.name <- "Score"
+    title.name = paste0(key, " Score")
+  }else if(key=='mean_IM_norm'){
+    legend.name <- "Score"
+    title.name = paste0(key, " Score")
+  }
+  
+  net[is.na(net)] <- 0
+  if (remove.isolate) {
+    idx1 <- which(Matrix::rowSums(net) == 0)
+    idx2 <- which(Matrix::colSums(net) == 0)
+    idx <- intersect(idx1, idx2)
+    if (length(idx) > 0) {
+      net <- net[-idx, ]
+      net <- net[, -idx]
+    }
+  }
+  mat <- net
+  if (is.null(color.use)) {
+    color.use <- scPalette(ncol(mat))
+  }
+  names(color.use) <- colnames(mat)
+  if (!is.null(row.show)) {
+    mat <- mat[row.show, ]
+  }
+  if (!is.null(col.show)) {
+    mat <- mat[, col.show]
+    color.use <- color.use[col.show]
+  }
+  if (min(mat) < 0) {
+    color.heatmap.use = colorRamp3(c(min(mat), 0, max(mat)), 
+                                   c(color.heatmap[1], "#f7f7f7", color.heatmap[2]))
+    colorbar.break <- c(round(min(mat, na.rm = T), digits = nchar(sub(".*\\.(0*).*", 
+                                                                      "\\1", min(mat, na.rm = T))) + 1), 0, round(max(mat, 
+                                                                                                                      na.rm = T), digits = nchar(sub(".*\\.(0*).*", "\\1",                                                                                                                                                 max(mat, na.rm = T))) + 1))
+  }else {
+    if (length(color.heatmap) == 3) {
+      color.heatmap.use = colorRamp3(c(0, min(mat), max(mat)), 
+                                     color.heatmap)
+    }
+    else if (length(color.heatmap) == 2) {
+      color.heatmap.use = colorRamp3(c(min(mat), max(mat)), 
+                                     color.heatmap)
+    }
+    else if (length(color.heatmap) == 1) {
+      color.heatmap.use = (grDevices::colorRampPalette((RColorBrewer::brewer.pal(n = 9, 
+                                                                                 name = color.heatmap))))(100)
+    }
+    colorbar.break <- c(round(min(mat, na.rm = T), digits = nchar(sub(".*\\.(0*).*", 
+                                                                      "\\1", min(mat, na.rm = T))) + 1), round(max(mat, 
+                                                                                                                   na.rm = T), digits = nchar(sub(".*\\.(0*).*", "\\1", 
+                                                                                                                                                  max(mat, na.rm = T))) + 1))
+  }
+  df <- data.frame(group = colnames(mat))
+  rownames(df) <- colnames(mat)
+  col_annotation <- HeatmapAnnotation(df = df, col = list(group = color.use), 
+                                      which = "column", show_legend = FALSE, show_annotation_name = FALSE, 
+                                      simple_anno_size = grid::unit(0.2, "cm"))
+  row_annotation <- HeatmapAnnotation(df = df, col = list(group = color.use), 
+                                      which = "row", show_legend = FALSE, show_annotation_name = FALSE, 
+                                      simple_anno_size = grid::unit(0.2, "cm"))
+  ha1 = rowAnnotation(Strength = anno_barplot(rowSums(abs(mat)), 
+                                              border = FALSE, gp = gpar(fill = color.use, col = color.use)), 
+                      show_annotation_name = FALSE)
+  ha2 = HeatmapAnnotation(Strength = anno_barplot(colSums(abs(mat)), 
+                                                  border = FALSE, gp = gpar(fill = color.use, col = color.use)), 
+                          show_annotation_name = FALSE)
+  if (sum(abs(mat) > 0) == 1) {
+    color.heatmap.use = c("white", color.heatmap.use)
+  }
+  else {
+    mat[mat == 0] <- NA
+  }
+  ht1 = Heatmap(mat, col = color.heatmap.use, na_col = "white", 
+                name = legend.name, bottom_annotation = col_annotation, 
+                left_annotation = row_annotation, top_annotation = ha2, 
+                right_annotation = ha1, cluster_rows = cluster.rows, 
+                cluster_columns = cluster.rows, row_names_side = "left", 
+                row_names_rot = 0, row_names_gp = gpar(fontsize = font.size), 
+                column_names_gp = gpar(fontsize = font.size), column_title = title.name, 
+                column_title_gp = gpar(fontsize = font.size.title), 
+                column_names_rot = 90, row_title = "Sources (Sender)",
+                row_title_gp = gpar(fontsize = font.size.title), row_title_rot = 90, 
+                heatmap_legend_param = list(title_gp = gpar(fontsize = 8, 
+                                                            fontface = "plain"), title_position = "leftcenter-rot", 
+                                            border = NA, legend_height = unit(20, "mm"), labels_gp = gpar(fontsize = 8), 
+                                            grid_width = unit(2, "mm")))
+  
+  return(ht1)
+}
+
+
+
 
 
 
